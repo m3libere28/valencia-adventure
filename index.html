@@ -325,9 +325,65 @@
             background-color: #FEF3C7;
             color: #92400E;
         }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes wave {
+            0% { transform: translateX(0) translateZ(0) scaleY(1); }
+            50% { transform: translateX(-25%) translateZ(0) scaleY(0.55); }
+            100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .loader-wave {
+            animation: wave 3s linear infinite;
+        }
+        .loader-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        .loader-pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
     </style>
 </head>
-<body class="bg-gray-50">
+<body class="font-sans">
+    <!-- Loader -->
+    <div id="loader" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 transition-opacity duration-500">
+        <div class="relative w-64 h-64">
+            <!-- Central content -->
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-white">
+                <!-- Animated beach icon -->
+                <div class="loader-float mb-4">
+                    <i class="fas fa-umbrella-beach text-5xl"></i>
+                </div>
+                
+                <!-- Family silhouette -->
+                <div class="loader-pulse mb-6">
+                    <div class="flex items-end space-x-2">
+                        <div class="w-6 h-16 bg-white rounded-t-full"></div>
+                        <div class="w-6 h-16 bg-white rounded-t-full"></div>
+                        <div class="w-6 h-12 bg-white rounded-t-full"></div>
+                    </div>
+                </div>
+                
+                <!-- Loading text -->
+                <h2 class="text-2xl font-bold mb-2">Medaglia-Asprilla Family</h2>
+                <p class="text-sm opacity-75">Loading your Valencia adventure...</p>
+                
+                <!-- Loading progress -->
+                <div class="w-32 h-1 bg-white/20 rounded-full mt-4 overflow-hidden">
+                    <div id="loader-progress" class="h-full bg-white rounded-full w-0 transition-all duration-300"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div id="main-content" class="opacity-0 transition-opacity duration-500">
     <!-- Navigation -->
     <nav class="bg-white shadow-md fixed w-full z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1666,5 +1722,33 @@
             </div>
         </div>
     </section>
+</div>
 </body>
 </html>
+
+<script>
+    // Loader functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const loader = document.getElementById('loader');
+        const mainContent = document.getElementById('main-content');
+        const progress = document.getElementById('loader-progress');
+        
+        // Simulate loading progress
+        let width = 0;
+        const interval = setInterval(() => {
+            width += Math.random() * 15;
+            if (width > 100) {
+                width = 100;
+                clearInterval(interval);
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    mainContent.style.opacity = '1';
+                    setTimeout(() => {
+                        loader.style.display = 'none';
+                    }, 500);
+                }, 500);
+            }
+            progress.style.width = width + '%';
+        }, 200);
+    });
+</script>
