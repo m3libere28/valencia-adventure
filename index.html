@@ -47,8 +47,7 @@
 
     <style>
         .hero {
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
-                        url('https://images.unsplash.com/photo-1599484233778-5e1a27d58861?auto=format&fit=crop&w=1920&q=80');
+            background: url('https://images.unsplash.com/photo-1599484233778-5e1a27d58861?auto=format&fit=crop&w=1920&q=80');
             background-size: cover;
             background-position: center;
             min-height: calc(100vh - 64px);
@@ -444,8 +443,6 @@
             <img src="./images/valencia-hero.jpg" alt="Valencia coastline with historic bell tower" 
                  class="w-full h-full object-cover transform scale-105 animate-slow-zoom"
                  style="animation: slow-zoom 20s infinite alternate;">
-            <!-- Lighter overlay -->
-            <div class="absolute inset-0 bg-gradient-to-b from-black/10 to-black/20"></div>
         </div>
         
         <!-- Hero Content -->
@@ -647,89 +644,63 @@
         });
     </script>
 
-    <!-- Rentals Section -->
-    <section id="rentals" class="py-20 bg-white reveal">
+    <!-- Apartment Hunting Section -->
+    <section id="apartments" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-center mb-12">Finding Our New Home</h2>
-            
-            <!-- Filters -->
-            <div class="bg-gray-50 p-6 rounded-lg shadow-sm mb-12">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Area</label>
-                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option>All Areas</option>
-                            <option>Ciutat Vella</option>
-                            <option>Eixample</option>
-                            <option>Russafa</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
-                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option>Any Price</option>
-                            <option>Up to €1000</option>
-                            <option>€1000 - €1500</option>
-                            <option>€1500 - €2000</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
-                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option>Any</option>
-                            <option>1+</option>
-                            <option>2+</option>
-                            <option>3+</option>
-                        </select>
-                    </div>
-                    <div class="flex items-end">
-                        <button class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                            Apply Filters
-                        </button>
-                    </div>
-                </div>
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Apartment Hunting</h2>
+                <p class="text-xl text-gray-600">Finding our perfect home in Valencia</p>
             </div>
 
-            <!-- Apartment Tracker -->
-            <div class="bg-white rounded-lg shadow-lg border p-6">
+            <!-- Apartment Search Form -->
+            <div class="bg-white rounded-lg shadow-lg border p-6 mb-8">
                 <h3 class="text-xl font-semibold mb-6">Track Potential Apartments</h3>
                 <form id="apartment-form" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Location/Reference</label>
-                            <input type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="e.g., Russafa - Ref#123">
+                            <label class="block text-sm font-medium text-gray-700">Location</label>
+                            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Price (€/month)</label>
-                            <input type="number" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="1200">
+                            <label class="block text-sm font-medium text-gray-700">Price (€/month)</label>
+                            <input type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Size (m²)</label>
+                            <input type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Bedrooms</label>
+                            <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4+</option>
+                            </select>
                         </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                        <textarea class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" rows="3" placeholder="Add any important details about the apartment..."></textarea>
+                        <label class="block text-sm font-medium text-gray-700">Notes</label>
+                        <textarea class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" rows="3"></textarea>
                     </div>
-                    <div>
-                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
-                            Add to Tracker
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            Add to List
                         </button>
                     </div>
                 </form>
+            </div>
 
-                <!-- Tracked Apartments Table -->
-                <div class="mt-8 overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead>
-                            <tr>
-                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
-                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200" id="tracked-apartments">
-                            <!-- Apartments will be added here -->
-                        </tbody>
-                    </table>
+            <!-- Apartment List -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Sample apartments will be added here dynamically -->
+            </div>
+
+            <!-- Map View -->
+            <div class="mt-12">
+                <div class="bg-white rounded-lg shadow-lg border p-6">
+                    <h3 class="text-xl font-semibold mb-6">Apartment Locations</h3>
+                    <div id="apartment-map" class="h-96 rounded-lg"></div>
                 </div>
             </div>
         </div>
