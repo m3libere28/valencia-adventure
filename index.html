@@ -447,20 +447,21 @@
         
         <!-- Hero Content -->
         <div class="relative h-full flex items-center justify-center text-white px-4">
-            <div class="text-center max-w-4xl">
-                <h1 class="text-5xl md:text-7xl font-bold mb-6 opacity-0 animate-fade-in-up"
-                    style="animation: fade-in-up 1s forwards 0.5s;">
+            <div class="text-center max-w-4xl backdrop-blur-sm bg-black/5 p-8 rounded-2xl">
+                <h1 class="text-5xl md:text-7xl font-bold mb-6 opacity-0 animate-fade-in-up text-shadow-lg"
+                    style="animation: fade-in-up 1s forwards 0.5s; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
                     Our Valencia Adventure
                 </h1>
-                <p class="text-xl md:text-2xl mb-8 opacity-0 animate-fade-in-up"
-                   style="animation: fade-in-up 1s forwards 0.8s;">
+                <p class="text-xl md:text-2xl mb-8 opacity-0 animate-fade-in-up text-shadow-md"
+                   style="animation: fade-in-up 1s forwards 0.8s; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
                     Join the Medaglia-Asprilla family as we embark on our journey to beautiful Valencia, Spain
                 </p>
                 <div class="opacity-0 animate-fade-in-up"
                      style="animation: fade-in-up 1s forwards 1.1s;">
                     <a href="#introduction" 
                        class="inline-block px-8 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 
-                              text-white rounded-full transition-all duration-300 border-2 border-white/50">
+                              text-white rounded-full transition-all duration-300 border-2 border-white/50
+                              hover:scale-105 transform">
                         Discover Our Story
                     </a>
                 </div>
@@ -469,7 +470,7 @@
 
         <!-- Scroll Indicator -->
         <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <i class="fas fa-chevron-down text-white text-2xl opacity-75"></i>
+            <i class="fas fa-chevron-down text-white text-2xl opacity-75 text-shadow-lg"></i>
         </div>
     </section>
 
@@ -645,63 +646,116 @@
     </script>
 
     <!-- Apartment Hunting Section -->
-    <section id="apartments" class="py-20 bg-white">
+    <section id="apartments" class="py-20 bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h2 class="text-4xl font-bold text-gray-900 mb-4">Apartment Hunting</h2>
-                <p class="text-xl text-gray-600">Finding our perfect home in Valencia</p>
+                <h2 class="text-4xl font-bold text-gray-900 mb-4">Find Our Dream Home</h2>
+                <p class="text-xl text-gray-600">Exploring Valencia's Most Beautiful Neighborhoods</p>
             </div>
 
-            <!-- Apartment Search Form -->
-            <div class="bg-white rounded-lg shadow-lg border p-6 mb-8">
-                <h3 class="text-xl font-semibold mb-6">Track Potential Apartments</h3>
-                <form id="apartment-form" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Location</label>
-                            <input type="text" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Price (€/month)</label>
-                            <input type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Size (m²)</label>
-                            <input type="number" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Bedrooms</label>
-                            <select class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4+</option>
-                            </select>
+            <!-- Interactive Search and Filter Bar -->
+            <div class="bg-white rounded-xl shadow-xl border p-8 mb-12 transform hover:shadow-2xl transition-all duration-300">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="relative group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Neighborhood</label>
+                        <select class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 group-hover:border-blue-400 transition-all">
+                            <option>All Areas</option>
+                            <option>Ciutat Vella</option>
+                            <option>L'Eixample</option>
+                            <option>Russafa</option>
+                            <option>El Cabanyal</option>
+                            <option>Benimaclet</option>
+                        </select>
+                        <div class="absolute inset-0 bg-blue-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                    </div>
+
+                    <div class="relative group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
+                        <select class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 group-hover:border-blue-400 transition-all">
+                            <option>Any Price</option>
+                            <option>Up to €800</option>
+                            <option>€800 - €1,200</option>
+                            <option>€1,200 - €1,600</option>
+                            <option>€1,600+</option>
+                        </select>
+                        <div class="absolute inset-0 bg-blue-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                    </div>
+
+                    <div class="relative group">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Features</label>
+                        <select class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 group-hover:border-blue-400 transition-all">
+                            <option>Must Have</option>
+                            <option>Balcony</option>
+                            <option>Air Conditioning</option>
+                            <option>Elevator</option>
+                            <option>Furnished</option>
+                        </select>
+                        <div class="absolute inset-0 bg-blue-500/5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                    </div>
+
+                    <button class="h-full px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+                                 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+                        <i class="fas fa-search"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Sample Apartment Card -->
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80" 
+                             class="w-full h-48 object-cover" alt="Apartment">
+                        <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 text-sm font-semibold text-blue-600">
+                            €1,200/month
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Notes</label>
-                        <textarea class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" rows="3"></textarea>
+                    <div class="p-6">
+                        <h3 class="text-lg font-semibold mb-2">Modern Apartment in Russafa</h3>
+                        <div class="flex items-center text-gray-600 mb-4">
+                            <i class="fas fa-map-marker-alt mr-2"></i>
+                            <span>Russafa, Valencia</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4 mb-4">
+                            <div class="text-center">
+                                <i class="fas fa-bed text-blue-500 mb-1"></i>
+                                <p class="text-sm text-gray-600">2 Beds</p>
+                            </div>
+                            <div class="text-center">
+                                <i class="fas fa-bath text-blue-500 mb-1"></i>
+                                <p class="text-sm text-gray-600">1 Bath</p>
+                            </div>
+                            <div class="text-center">
+                                <i class="fas fa-ruler-combined text-blue-500 mb-1"></i>
+                                <p class="text-sm text-gray-600">75m²</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs">Balcony</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs">AC</span>
+                            <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs">Elevator</span>
+                        </div>
                     </div>
-                    <div class="flex justify-end">
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                            Add to List
+                    <div class="p-6 pt-0">
+                        <button class="w-full py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+                                     hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
+                            View Details
                         </button>
                     </div>
-                </form>
-            </div>
-
-            <!-- Apartment List -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Sample apartments will be added here dynamically -->
-            </div>
-
-            <!-- Map View -->
-            <div class="mt-12">
-                <div class="bg-white rounded-lg shadow-lg border p-6">
-                    <h3 class="text-xl font-semibold mb-6">Apartment Locations</h3>
-                    <div id="apartment-map" class="h-96 rounded-lg"></div>
                 </div>
+
+                <!-- Add more sample cards here -->
+            </div>
+
+            <!-- Interactive Map -->
+            <div class="mt-12 bg-white rounded-xl shadow-xl overflow-hidden">
+                <div class="p-6 border-b">
+                    <h3 class="text-xl font-semibold">Explore Neighborhoods</h3>
+                    <p class="text-gray-600">Click on markers to see available properties</p>
+                </div>
+                <div id="apartment-map" class="h-[600px] w-full"></div>
             </div>
         </div>
     </section>
