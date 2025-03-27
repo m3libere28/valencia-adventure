@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valencia Adventure</title>
+    
+    <!-- Core Dependencies -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    <script src="/js/schools.js" defer></script>
+    <script src="/js/budget.js" defer></script>
+    <script src="/js/journal.js" defer></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float-slow': 'float 8s ease-in-out infinite',
+                        'float-medium': 'float 6s ease-in-out infinite',
+                        'float-fast': 'float 4s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) scale(1)' },
+                            '50%': { transform: 'translateY(-20px) scale(1.05)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+                        url('https://images.unsplash.com/photo-1599484233778-5e1a27d58861?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            min-height: calc(100vh - 64px);
+        }
+        
+        .countdown-box {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease;
+        }
+        
+        .countdown-box:hover {
+            transform: translateY(-5px);
+        }
+
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background-color: #2563eb;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease;
+        }
+        
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .parallax {
+            transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+        }
+
+        .timeline-item {
+            opacity: 0;
+            transform: translateX(-100px);
+            transition: all 0.6s ease;
+        }
+
+        .timeline-item.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .weather-card {
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        .weather-card:hover {
+            transform: rotateY(180deg);
+        }
+
+        .weather-card-front,
+        .weather-card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .weather-card-back {
+            transform: rotateY(180deg);
+        }
+
+        .budget-progress {
+            position: relative;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .budget-progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #3b82f6;
+            transition: width 1s ease;
+        }
+
+        .todo-item {
+            transition: all 0.3s ease;
+        }
+
+        .todo-item.completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+
+        .todo-item:hover {
+            transform: translateX(10px);
+        }
+
+        @keyframes cardFlip {
+            from { transform: perspective(1000px) rotateY(0deg); }
+            to { transform: perspective(1000px) rotateY(360deg); }
+        }
+
+        .flip-card {
+            animation: cardFlip 0.6s ease-out;
+        }
+        
+        .timeline-container {
+            position: relative;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            overflow: hidden;
+        }
+
+        .timeline-container::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background: linear-gradient(to bottom, #60A5FA, #2563EB);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+            border-radius: 999px;
+            z-index: 1;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.2);
+        }
+
+        .timeline-item {
+            padding: 20px 40px;
+            position: relative;
+            width: 50%;
+            opacity: 0;
+            margin-bottom: 40px;
+        }
+
+        .timeline-item:nth-child(odd) {
+            left: 0;
+            padding-right: 60px;
+        }
+
+        .timeline-item:nth-child(even) {
+            left: 50%;
+            padding-left: 60px;
+        }
+
+        .timeline-content {
+            position: relative;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            z-index: 2;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(45deg, #60A5FA, #2563EB);
+            border: 4px solid white;
+            top: 20px;
+            border-radius: 50%;
+            z-index: 3;
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .timeline-item:hover::before {
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .timeline-item:nth-child(odd)::before {
+            right: -15px;
+        }
+
+        .timeline-item:nth-child(even)::before {
+            left: -15px;
+        }
+
+        .task {
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task:hover {
+            background-color: #f3f4f6;
+            transform: translateX(5px);
+        }
+
+        .task .checkbox {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .task.completed .checkbox {
+            background-color: #2563EB;
+            border-color: #2563EB;
+            transform: scale(1.1);
+        }
+
+        .task.completed {
+            color: #6B7280;
+            text-decoration: line-through;
+            text-decoration-color: #2563EB;
+        }
+
+        .task.completed .checkbox i {
+            color: white;
+        }
+
+        .phase-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .current-phase {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .completed-phase {
+            background-color: #DCFCE7;
+            color: #166534;
+        }
+
+        .upcoming-phase {
+            background-color: #FEF3C7;
+            color: #92400E;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <a href="#" class="flex items-center space-x-2">
+                        <i class="fas fa-plane-departure text-blue-600 text-2xl"></i>
+                        <span class="text-xl font-bold">Valencia<span class="text-orange-500">Bound</span></span>
+                    </a>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#home" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Home</a>
+                    <a href="#rentals" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Rentals</a>
+                    <a href="#timeline" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Timeline</a>
+                    <a href="#weather" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Weather</a>
+                    <a href="#schools" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Schools</a>
+                    <a href="#budget" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Budget</a>
+                    <a href="#todo" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Todo</a>
+                    <a href="#more" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">More</a>
+                    <a href="#journal" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Journal</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="menu-toggle" class="text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden">
+        <div class="fixed right-0 top-0 bottom-0 w-64 bg-white p-6">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-lg font-semibold">Menu</h3>
+                <button id="close-menu" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="flex flex-col space-y-4">
+                <a href="#home" class="text-gray-600 hover:text-blue-600">Home</a>
+                <a href="#rentals" class="text-gray-600 hover:text-blue-600">Rentals</a>
+                <a href="#timeline" class="text-gray-600 hover:text-blue-600">Timeline</a>
+                <a href="#weather" class="text-gray-600 hover:text-blue-600">Weather</a>
+                <a href="#schools" class="text-gray-600 hover:text-blue-600">Schools</a>
+                <a href="#budget" class="text-gray-600 hover:text-blue-600">Budget</a>
+                <a href="#todo" class="text-gray-600 hover:text-blue-600">Todo</a>
+                <a href="#more" class="text-gray-600 hover:text-blue-600">More</a>
+                <a href="#journal" class="text-gray-600 hover:text-blue-600">Journal</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="relative h-[150vh] bg-cover bg-center flex items-center justify-center text-white" style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1588681664899-f142ff2dc9b1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80');">
+        <div class="text-center text-white px-4">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6 opacity-0" id="hero-title">Our Valencia Adventure</h1>
+            <p class="text-xl md:text-2xl mb-12 opacity-90 opacity-0" id="hero-subtitle">Counting down to our new chapter in Spain</p>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+                <div class="countdown-box p-6 rounded-lg opacity-0" data-delay="0.2">
+                    <div id="days" class="text-4xl font-bold">--</div>
+                    <div class="text-sm uppercase tracking-wider">Days</div>
+                </div>
+                <div class="countdown-box p-6 rounded-lg opacity-0" data-delay="0.4">
+                    <div id="hours" class="text-4xl font-bold">--</div>
+                    <div class="text-sm uppercase tracking-wider">Hours</div>
+                </div>
+                <div class="countdown-box p-6 rounded-lg opacity-0" data-delay="0.6">
+                    <div id="minutes" class="text-4xl font-bold">--</div>
+                    <div class="text-sm uppercase tracking-wider">Minutes</div>
+                </div>
+                <div class="countdown-box p-6 rounded-lg opacity-0" data-delay="0.8">
+                    <div id="seconds" class="text-4xl font-bold">--</div>
+                    <div class="text-sm uppercase tracking-wider">Seconds</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Introduction Section -->
+    <section id="introduction" class="relative py-24 bg-gradient-to-br from-blue-50 to-purple-50 overflow-hidden">
+        <!-- Animated background elements -->
+        <div class="absolute inset-0 opacity-20">
+            <div class="animate-float-slow absolute top-10 left-10 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl"></div>
+            <div class="animate-float-medium absolute top-40 right-20 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl"></div>
+            <div class="animate-float-fast absolute bottom-10 left-1/3 w-56 h-56 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 relative">
+            <!-- Grid layout for content -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+                <!-- Left column: Text content -->
+                <div class="space-y-8 opacity-0" id="intro-text">
+                    <h2 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        Welcome to Our Journey
+                    </h2>
+                    <p class="text-xl text-gray-700 leading-relaxed">
+                        We're the Medaglia-Asprilla family - Emily, Helbert, and little Michelangelo - embarking on an exciting adventure to Valencia, Spain. This website is our digital home where we'll document our experiences, plan our move, and share our story with family and friends.
+                    </p>
+                    <div class="flex flex-wrap gap-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                                <i class="fas fa-calendar-alt text-2xl text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Duration</h3>
+                                <p class="text-gray-600">16 months</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                                <i class="fas fa-map-marker-alt text-2xl text-purple-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Location</h3>
+                                <p class="text-gray-600">Valencia, Spain</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
+                                <i class="fas fa-users text-2xl text-pink-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-900">Family</h3>
+                                <p class="text-gray-600">Adventure of 3</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right column: Interactive elements -->
+                <div class="relative opacity-0" id="intro-visual">
+                    <!-- Spain map outline SVG -->
+                    <div class="w-full aspect-square relative">
+                        <svg viewBox="0 0 200 200" class="w-full h-full transform rotate-12">
+                            <path d="M40,100 Q60,60 100,40 Q140,60 160,100 Q140,140 100,160 Q60,140 40,100 Z" 
+                                  class="fill-none stroke-blue-600 stroke-2"
+                                  id="spain-path" />
+                            <!-- Animated dot -->
+                            <circle r="4" fill="#EC4899" id="moving-dot">
+                                <animateMotion dur="8s" repeatCount="indefinite">
+                                    <mpath href="#spain-path" />
+                                </animateMotion>
+                            </circle>
+                        </svg>
+                        <!-- Valencia marker -->
+                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                            <div class="relative">
+                                <div class="w-4 h-4 bg-red-500 rounded-full"></div>
+                                <div class="absolute top-0 left-0 w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 opacity-0" id="intro-stats">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-blue-600" id="days-counter">0</div>
+                    <p class="text-gray-600">Days Until Move</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-purple-600" id="tasks-counter">0</div>
+                    <p class="text-gray-600">Tasks Completed</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-pink-600" id="places-counter">0</div>
+                    <p class="text-gray-600">Places to Visit</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-indigo-600" id="memories-counter">0</div>
+                    <p class="text-gray-600">Memories Made</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate introduction elements when they come into view
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.target.id === 'intro-text') {
+                            gsap.fromTo(entry.target, 
+                                { opacity: 0, x: -50 },
+                                { opacity: 1, x: 0, duration: 1, ease: 'power2.out' }
+                            );
+                        } else if (entry.target.id === 'intro-visual') {
+                            gsap.fromTo(entry.target,
+                                { opacity: 0, x: 50 },
+                                { opacity: 1, x: 0, duration: 1, ease: 'power2.out' }
+                            );
+                        } else if (entry.target.id === 'intro-stats') {
+                            gsap.fromTo(entry.target,
+                                { opacity: 0, y: 30 },
+                                { opacity: 1, y: 0, duration: 1, ease: 'power2.out' }
+                            );
+                            // Animate counters
+                            animateCounter('days-counter', 459);
+                            animateCounter('tasks-counter', 24);
+                            animateCounter('places-counter', 15);
+                            animateCounter('memories-counter', 0);
+                        }
+                    }
+                });
+            }, { threshold: 0.2 });
+
+            // Observe elements
+            ['intro-text', 'intro-visual', 'intro-stats'].forEach(id => {
+                const element = document.getElementById(id);
+                if (element) observer.observe(element);
+            });
+
+            // Counter animation function
+            function animateCounter(id, target) {
+                const element = document.getElementById(id);
+                let current = 0;
+                const increment = target / 50;
+                const interval = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(interval);
+                    }
+                    element.textContent = Math.round(current);
+                }, 30);
+            }
+        });
+    </script>
+
+    <!-- Rentals Section -->
+    <section id="rentals" class="py-20 bg-white reveal">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12">Finding Our New Home</h2>
+            
+            <!-- Filters -->
+            <div class="bg-gray-50 p-6 rounded-lg shadow-sm mb-12">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Area</label>
+                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option>All Areas</option>
+                            <option>Ciutat Vella</option>
+                            <option>Eixample</option>
+                            <option>Russafa</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
+                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option>Any Price</option>
+                            <option>Up to €1000</option>
+                            <option>€1000 - €1500</option>
+                            <option>€1500 - €2000</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Bedrooms</label>
+                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option>Any</option>
+                            <option>1+</option>
+                            <option>2+</option>
+                            <option>3+</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apartment Tracker -->
+            <div class="bg-white rounded-lg shadow-sm border p-6">
+                <h3 class="text-xl font-semibold mb-6">Track Potential Apartments</h3>
+                <form id="apartment-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Location/Reference</label>
+                            <input type="text" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="e.g., Russafa - Ref#123">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Price (€/month)</label>
+                            <input type="number" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="1200">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" rows="3" placeholder="Add any important details about the apartment..."></textarea>
+                    </div>
+                    <div>
+                        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                            Add to Tracker
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Tracked Apartments Table -->
+                <div class="mt-8 overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                                <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="tracked-apartments">
+                            <!-- Apartments will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Timeline Section -->
+    <section id="timeline" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-2">Our Journey to Spain</h2>
+            <p class="text-xl text-center text-gray-600 mb-16">March 2025 – July 2026</p>
+            
+            <div class="timeline-container relative">
+                <!-- March-May 2025 -->
+                <div class="timeline-item group" data-phase="prep">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flex items-center mb-4">
+                            <span class="text-3xl mr-4">📚</span>
+                            <h3 class="text-2xl font-bold">March–May 2025: Prepping & Research</h3>
+                        </div>
+                        <ul class="space-y-3 text-gray-600">
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Finalize decision to move to Spain
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Research cities and neighborhoods
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Begin budgeting and savings plan
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Review visa options
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Research international schools
+                            </li>
+                        </ul>
+                        <div class="mt-4 text-sm text-gray-500">Current Phase</div>
+                        <div class="phase-indicator current-phase">Current</div>
+                    </div>
+                </div>
+
+                <!-- June-August 2025 -->
+                <div class="timeline-item group" data-phase="legal">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flex items-center mb-4">
+                            <span class="text-3xl mr-4">🛂</span>
+                            <h3 class="text-2xl font-bold">June–August 2025: Legal & Logistics</h3>
+                        </div>
+                        <ul class="space-y-3 text-gray-600">
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Start visa paperwork
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Make consulate appointments
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Renew passports
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Get background checks
+                            </li>
+                        </ul>
+                        <div class="mt-4 text-sm text-gray-500">Upcoming</div>
+                        <div class="phase-indicator upcoming-phase">Upcoming</div>
+                    </div>
+                </div>
+
+                <!-- September-November 2025 -->
+                <div class="timeline-item group" data-phase="docs">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flex items-center mb-4">
+                            <span class="text-3xl mr-4">📦</span>
+                            <h3 class="text-2xl font-bold">September–November 2025: Documents & Downsizing</h3>
+                        </div>
+                        <ul class="space-y-3 text-gray-600">
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Translate documents
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Begin decluttering
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                List property
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Research shipping options
+                            </li>
+                        </ul>
+                        <div class="mt-4 text-sm text-gray-500">Upcoming</div>
+                        <div class="phase-indicator upcoming-phase">Upcoming</div>
+                    </div>
+                </div>
+
+                <!-- December 2025-February 2026 -->
+                <div class="timeline-item group" data-phase="health">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flex items-center mb-4">
+                            <span class="text-3xl mr-4">🎒</span>
+                            <h3 class="text-2xl font-bold">December 2025–February 2026: Health & Housing</h3>
+                        </div>
+                        <ul class="space-y-3 text-gray-600">
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Medical checkups
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Collect medical records
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Secure housing
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Submit visa application
+                            </li>
+                        </ul>
+                        <div class="mt-4 text-sm text-gray-500">Upcoming</div>
+                        <div class="phase-indicator upcoming-phase">Upcoming</div>
+                    </div>
+                </div>
+
+                <!-- March-May 2026 -->
+                <div class="timeline-item group" data-phase="school">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flex items-center mb-4">
+                            <span class="text-3xl mr-4">📘</span>
+                            <h3 class="text-2xl font-bold">March–May 2026: Schooling & Systems</h3>
+                        </div>
+                        <ul class="space-y-3 text-gray-600">
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Confirm school enrollment
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Complete visa paperwork
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Notify U.S. institutions
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Practice Spanish
+                            </li>
+                        </ul>
+                        <div class="mt-4 text-sm text-gray-500">Upcoming</div>
+                        <div class="phase-indicator upcoming-phase">Upcoming</div>
+                    </div>
+                </div>
+
+                <!-- June 2026 -->
+                <div class="timeline-item group" data-phase="final">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flex items-center mb-4">
+                            <span class="text-3xl mr-4">📅</span>
+                            <h3 class="text-2xl font-bold">June 2026: Final Prep</h3>
+                        </div>
+                        <ul class="space-y-3 text-gray-600">
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Sell car and finish packing
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Cancel subscriptions
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Confirm flight details
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Gather final documents
+                            </li>
+                        </ul>
+                        <div class="mt-4 text-sm text-gray-500">Upcoming</div>
+                        <div class="phase-indicator upcoming-phase">Upcoming</div>
+                    </div>
+                </div>
+
+                <!-- July 2026 -->
+                <div class="timeline-item group" data-phase="move">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                        <div class="flex items-center mb-4">
+                            <span class="text-3xl mr-4">✈️</span>
+                            <h3 class="text-2xl font-bold">July 2026: Move to Spain!</h3>
+                        </div>
+                        <ul class="space-y-3 text-gray-600">
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Fly to Valencia!
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Register with town hall
+                            </li>
+                            <li class="flex items-center task">
+                                <span class="w-6 h-6 flex items-center justify-center border-2 border-blue-500 rounded-full mr-3 checkbox">
+                                    <i class="fas fa-check text-blue-500 opacity-0"></i>
+                                </span>
+                                Begin the adventure! 🇪🇸
+                            </li>
+                        </ul>
+                        <div class="mt-4 text-sm text-gray-500">Final Destination</div>
+                        <div class="phase-indicator completed-phase">Final</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Timeline animations
+        function initTimelineAnimations() {
+            gsap.registerPlugin(ScrollTrigger);
+            
+            // Animate timeline items on scroll
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            
+            timelineItems.forEach((item, index) => {
+                const content = item.querySelector('.timeline-content');
+                const direction = index % 2 === 0 ? -1 : 1;
+                
+                // Set initial state
+                gsap.set(item, { opacity: 0, x: 50 * direction });
+                
+                // Create scroll-triggered animation
+                gsap.to(item, {
+                    opacity: 1,
+                    x: 0,
+                    duration: 1,
+                    scrollTrigger: {
+                        trigger: item,
+                        start: "top 80%",
+                        end: "top 60%",
+                        toggleActions: "play none none reverse",
+                        scrub: 1
+                    }
+                });
+                
+                // Animate the dot
+                gsap.from(item.querySelector('::before'), {
+                    scale: 0,
+                    duration: 0.5,
+                    scrollTrigger: {
+                        trigger: item,
+                        start: "top 75%",
+                        toggleActions: "play none none reverse"
+                    }
+                });
+            });
+
+            // Task completion animations
+            const tasks = document.querySelectorAll('.task');
+            tasks.forEach(task => {
+                task.addEventListener('click', () => {
+                    const wasCompleted = task.classList.contains('completed');
+                    task.classList.toggle('completed');
+                    
+                    const checkmark = task.querySelector('.fa-check');
+                    const checkbox = task.querySelector('.checkbox');
+                    
+                    if (!wasCompleted) {
+                        // Animate when completing
+                        gsap.to(checkmark, {
+                            opacity: 1,
+                            scale: 1,
+                            duration: 0.2,
+                            ease: "back.out(1.7)"
+                        });
+                        
+                        gsap.to(checkbox, {
+                            backgroundColor: '#2563EB',
+                            borderColor: '#2563EB',
+                            scale: 1.1,
+                            duration: 0.3
+                        });
+                        
+                        gsap.to(task, {
+                            color: '#6B7280',
+                            duration: 0.3
+                        });
+                    } else {
+                        // Animate when uncompleting
+                        gsap.to(checkmark, {
+                            opacity: 0,
+                            scale: 0.8,
+                            duration: 0.2
+                        });
+                        
+                        gsap.to(checkbox, {
+                            backgroundColor: 'transparent',
+                            borderColor: '#3B82F6',
+                            scale: 1,
+                            duration: 0.3
+                        });
+                        
+                        gsap.to(task, {
+                            color: '#374151',
+                            duration: 0.3
+                        });
+                    }
+                });
+            });
+        }
+
+        // Initialize animations when document is loaded
+        document.addEventListener('DOMContentLoaded', initTimelineAnimations);
+    </script>
+
+    <!-- Weather Section -->
+    <section id="weather" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-2">Valencia Weather Guide</h2>
+            <p class="text-xl text-center text-gray-600 mb-16">Stay comfortable in Mediterranean climate</p>
+
+            <!-- Current Weather Card -->
+            <div class="weather-card bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-xl p-8 mb-12 text-white transform hover:scale-105 transition-transform duration-300">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="text-center md:text-left">
+                        <h3 class="text-2xl font-semibold mb-2">Current Weather</h3>
+                        <div class="flex items-center justify-center md:justify-start space-x-4">
+                            <i class="fas fa-sun text-6xl text-yellow-300"></i>
+                            <div>
+                                <span class="text-5xl font-bold" id="current-temp">25°C</span>
+                                <p class="text-lg opacity-90" id="weather-desc">Sunny</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mt-6">
+                            <div>
+                                <i class="fas fa-wind text-2xl mb-1"></i>
+                                <p class="text-sm opacity-75">Wind</p>
+                                <p class="font-semibold" id="wind-speed">12 km/h</p>
+                            </div>
+                            <div>
+                                <i class="fas fa-tint text-2xl mb-1"></i>
+                                <p class="text-sm opacity-75">Humidity</p>
+                                <p class="font-semibold" id="humidity">65%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="clothing-recommendation bg-white/10 rounded-lg p-6">
+                        <h4 class="text-xl font-semibold mb-4">What to Wear Today</h4>
+                        <ul class="space-y-2" id="clothing-list">
+                            <li class="flex items-center">
+                                <i class="fas fa-tshirt mr-3"></i>
+                                Light cotton shirt
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-walking mr-3"></i>
+                                Comfortable shorts
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-umbrella-beach mr-3"></i>
+                                Sun hat
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-glasses mr-3"></i>
+                                Sunglasses
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seasonal Weather Guide -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Spring -->
+                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-center mb-4">
+                        <span class="text-4xl">🌸</span>
+                        <h3 class="text-xl font-semibold mt-2">Spring (Mar-May)</h3>
+                        <p class="text-gray-600">15-22°C</p>
+                    </div>
+                    <div class="space-y-3">
+                        <p class="text-sm text-gray-600 mb-4">Mild temperatures with occasional rain</p>
+                        <div class="clothing-items space-y-2">
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-jacket mr-2"></i>
+                                Light jacket
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-tshirt mr-2"></i>
+                                Long sleeve shirts
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-socks mr-2"></i>
+                                Light sweater
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-umbrella mr-2"></i>
+                                Umbrella
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summer -->
+                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-center mb-4">
+                        <span class="text-4xl">☀️</span>
+                        <h3 class="text-xl font-semibold mt-2">Summer (Jun-Aug)</h3>
+                        <p class="text-gray-600">25-32°C</p>
+                    </div>
+                    <div class="space-y-3">
+                        <p class="text-sm text-gray-600 mb-4">Hot and sunny with high humidity</p>
+                        <div class="clothing-items space-y-2">
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-tshirt mr-2"></i>
+                                Light cotton shirts
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-walking mr-2"></i>
+                                Shorts/skirts
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-umbrella-beach mr-2"></i>
+                                Swimwear
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-hat-cowboy mr-2"></i>
+                                Sun protection
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fall -->
+                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-center mb-4">
+                        <span class="text-4xl">🍂</span>
+                        <h3 class="text-xl font-semibold mt-2">Fall (Sep-Nov)</h3>
+                        <p class="text-gray-600">18-25°C</p>
+                    </div>
+                    <div class="space-y-3">
+                        <p class="text-sm text-gray-600 mb-4">Pleasant with some rainfall</p>
+                        <div class="clothing-items space-y-2">
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-jacket mr-2"></i>
+                                Light layers
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-tshirt mr-2"></i>
+                                Long pants
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-socks mr-2"></i>
+                                Light scarf
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-umbrella mr-2"></i>
+                                Rain jacket
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Winter -->
+                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                    <div class="text-center mb-4">
+                        <span class="text-4xl">❄️</span>
+                        <h3 class="text-xl font-semibold mt-2">Winter (Dec-Feb)</h3>
+                        <p class="text-gray-600">10-15°C</p>
+                    </div>
+                    <div class="space-y-3">
+                        <p class="text-sm text-gray-600 mb-4">Mild winters with some cold days</p>
+                        <div class="clothing-items space-y-2">
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-jacket mr-2"></i>
+                                Warm jacket
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-scarf mr-2"></i>
+                                Scarf & gloves
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-socks mr-2"></i>
+                                Warm layers
+                            </div>
+                            <div class="flex items-center text-gray-700">
+                                <i class="fas fa-umbrella mr-2"></i>
+                                Waterproof shoes
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weather Chart -->
+            <div class="mt-16 bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-2xl font-semibold mb-6 text-center">Annual Temperature Range</h3>
+                <canvas id="weather-chart" height="100"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Weather Chart
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('weather-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [
+                        {
+                            label: 'Average High °C',
+                            data: [16, 17, 19, 21, 24, 28, 31, 31, 28, 24, 20, 17],
+                            borderColor: '#60A5FA',
+                            backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: 'Average Low °C',
+                            data: [7, 8, 9, 11, 14, 18, 21, 21, 18, 14, 10, 8],
+                            borderColor: '#F59E0B',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Valencia Temperature Throughout the Year'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Simulated real-time weather updates
+            function updateWeather() {
+                const now = new Date();
+                const hour = now.getHours();
+                
+                // Simulate temperature based on time of day
+                let temp = 20 + Math.sin((hour - 12) * Math.PI / 12) * 5;
+                temp = Math.round(temp * 10) / 10;
+                
+                // Update weather display
+                document.getElementById('current-temp').textContent = `${temp}°C`;
+                
+                // Update clothing recommendations based on temperature
+                const clothingList = document.getElementById('clothing-list');
+                clothingList.innerHTML = '';
+                
+                const recommendations = getClothingRecommendations(temp);
+                recommendations.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'flex items-center';
+                    li.innerHTML = `<i class="fas ${item.icon} mr-3"></i>${item.text}`;
+                    clothingList.appendChild(li);
+                });
+            }
+
+            function getClothingRecommendations(temp) {
+                if (temp >= 28) {
+                    return [
+                        { icon: 'fa-tshirt', text: 'Light cotton shirt' },
+                        { icon: 'fa-walking', text: 'Shorts or skirt' },
+                        { icon: 'fa-umbrella-beach', text: 'Sun hat' },
+                        { icon: 'fa-glasses', text: 'Sunglasses' }
+                    ];
+                } else if (temp >= 20) {
+                    return [
+                        { icon: 'fa-tshirt', text: 'Light shirt' },
+                        { icon: 'fa-walking', text: 'Light pants or shorts' },
+                        { icon: 'fa-jacket', text: 'Light jacket for evening' },
+                        { icon: 'fa-glasses', text: 'Sunglasses' }
+                    ];
+                } else if (temp >= 15) {
+                    return [
+                        { icon: 'fa-jacket', text: 'Light jacket' },
+                        { icon: 'fa-tshirt', text: 'Long sleeve shirt' },
+                        { icon: 'fa-walking', text: 'Long pants' },
+                        { icon: 'fa-scarf', text: 'Light scarf' }
+                    ];
+                } else {
+                    return [
+                        { icon: 'fa-jacket', text: 'Warm jacket' },
+                        { icon: 'fa-scarf', text: 'Scarf and gloves' },
+                        { icon: 'fa-socks', text: 'Warm socks' },
+                        { icon: 'fa-umbrella', text: 'Umbrella' }
+                    ];
+                }
+            }
+
+            // Update weather every 5 minutes
+            updateWeather();
+            setInterval(updateWeather, 300000);
+
+            // Add hover effects to season cards
+            const seasonCards = document.querySelectorAll('.season-card');
+            seasonCards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    gsap.to(card, {
+                        y: -10,
+                        duration: 0.3,
+                        ease: 'power2.out'
+                    });
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    gsap.to(card, {
+                        y: 0,
+                        duration: 0.3,
+                        ease: 'power2.out'
+                    });
+                });
+            });
+        });
+    </script>
+
+    <!-- Schools Section -->
+    <section id="schools" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-2">Valencia Schools Guide</h2>
+            <p class="text-xl text-center text-gray-600 mb-16">Finding the perfect educational fit</p>
+
+            <!-- Schools Map -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+                <h4 class="text-2xl font-semibold mb-6">Schools Map</h4>
+                <div id="schools-map" class="h-[600px] rounded-lg"></div>
+            </div>
+
+            <!-- International Schools -->
+            <div class="mb-20">
+                <h3 class="text-3xl font-semibold mb-8">International Schools</h3>
+                
+                <!-- School cards will be generated dynamically -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12" id="international-schools"></div>
+            </div>
+
+            <!-- Public Schools -->
+            <div class="mb-20">
+                <h3 class="text-3xl font-semibold mb-8">Public Schools</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="public-schools"></div>
+            </div>
+
+            <!-- Application Tracking Form -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+                <h4 class="text-2xl font-semibold mb-6">School Application Tracker</h4>
+                <form id="school-application-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">School Name</label>
+                            <input type="text" name="school-name" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Application Status</label>
+                            <select name="status" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                <option>Planning to Apply</option>
+                                <option>Application in Progress</option>
+                                <option>Application Submitted</option>
+                                <option>Accepted</option>
+                                <option>Rejected</option>
+                                <option>Waitlisted</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Application Deadline</label>
+                            <input type="date" name="deadline" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Priority Level</label>
+                            <select name="priority" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                <option>High</option>
+                                <option>Medium</option>
+                                <option>Low</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea name="notes" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        Add to Tracker
+                    </button>
+                </form>
+            </div>
+
+            <!-- Applications Table -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <h4 class="text-2xl font-semibold mb-6">Current Applications</h4>
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-6 py-3 text-left text-gray-500 font-semibold">School</th>
+                            <th class="px-6 py-3 text-left text-gray-500 font-semibold">Status</th>
+                            <th class="px-6 py-3 text-left text-gray-500 font-semibold">Deadline</th>
+                            <th class="px-6 py-3 text-left text-gray-500 font-semibold">Priority</th>
+                            <th class="px-6 py-3 text-left text-gray-500 font-semibold">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="applications-table-body">
+                        <!-- JavaScript will populate this -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <script src="/js/schools.js"></script>
+
+    <!-- Budget Section -->
+    <section id="budget" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-2">Budget Tracker</h2>
+            <p class="text-xl text-center text-gray-600 mb-16">Keep track of your expenses in Valencia</p>
+
+            <!-- Budget Summary -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-xl font-semibold">Total Budget</h4>
+                        <button onclick="setTotalBudget()" class="text-blue-500 hover:text-blue-700">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </div>
+                    <p id="total-budget" class="text-3xl font-bold text-green-500">€0.00</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h4 class="text-xl font-semibold mb-4">Total Expenses</h4>
+                    <p id="total-expenses" class="text-3xl font-bold text-red-500">€0.00</p>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h4 class="text-xl font-semibold mb-4">Remaining Budget</h4>
+                    <p id="remaining-budget" class="text-3xl font-bold text-blue-500">€0.00</p>
+                </div>
+            </div>
+
+            <!-- Budget Progress -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-12">
+                <h4 class="text-xl font-semibold mb-4">Budget Progress</h4>
+                <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
+                    <div id="budget-progress" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h4 class="text-xl font-semibold mb-4">Spending by Category</h4>
+                    <div class="h-80">
+                        <canvas id="spending-chart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h4 class="text-xl font-semibold mb-4">Monthly Spending Trend</h4>
+                    <div class="h-80">
+                        <canvas id="monthly-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Spending -->
+            <div class="mb-12">
+                <h3 class="text-2xl font-semibold mb-6">Category Spending</h3>
+                <div id="category-spending" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Category cards will be generated dynamically -->
+                </div>
+            </div>
+
+            <!-- Add Expense Form -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+                <h4 class="text-2xl font-semibold mb-6">Add New Expense</h4>
+                <form id="expense-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input type="date" name="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <input type="text" name="description" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <select name="category" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                <option value="housing">Housing</option>
+                                <option value="utilities">Utilities</option>
+                                <option value="groceries">Groceries</option>
+                                <option value="transportation">Transportation</option>
+                                <option value="healthcare">Healthcare</option>
+                                <option value="entertainment">Entertainment</option>
+                                <option value="education">Education</option>
+                                <option value="shopping">Shopping</option>
+                                <option value="savings">Savings</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount (€)</label>
+                            <input type="number" name="amount" step="0.01" min="0" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea name="notes" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        Add Expense
+                    </button>
+                </form>
+            </div>
+
+            <!-- Expenses List -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-6 flex justify-between items-center">
+                    <h4 class="text-2xl font-semibold">Recent Expenses</h4>
+                    <div class="space-x-4">
+                        <button onclick="exportBudgetData()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                            <i class="fas fa-download mr-2"></i>Export
+                        </button>
+                        <label class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer">
+                            <i class="fas fa-upload mr-2"></i>Import
+                            <input type="file" id="import-budget" accept=".json" class="hidden">
+                        </label>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-gray-500 font-semibold">Date</th>
+                                <th class="px-6 py-3 text-left text-gray-500 font-semibold">Description</th>
+                                <th class="px-6 py-3 text-left text-gray-500 font-semibold">Category</th>
+                                <th class="px-6 py-3 text-left text-gray-500 font-semibold">Amount</th>
+                                <th class="px-6 py-3 text-left text-gray-500 font-semibold">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenses-tbody">
+                            <!-- Expenses will be added dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Family Journal Section -->
+    <section id="journal" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-2">Family Journal</h2>
+            <p class="text-xl text-center text-gray-600 mb-16">Capture our family adventures in Valencia</p>
+
+            <!-- Add Entry Form -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-semibold">Add New Entry</h3>
+                    <div class="space-x-4">
+                        <button onclick="exportJournal()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                            <i class="fas fa-download mr-2"></i>Export Journal
+                        </button>
+                        <label class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer">
+                            <i class="fas fa-upload mr-2"></i>Import Journal
+                            <input type="file" id="import-journal" accept=".json" class="hidden">
+                        </label>
+                    </div>
+                </div>
+                <form id="journal-form" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                            <input type="date" name="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+                            <input type="text" name="title" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Location Name</label>
+                            <input type="text" name="location-name" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Location (Click on map)</label>
+                            <input type="text" name="location" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required readonly>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Weather</label>
+                            <select name="weather" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                <option value="Sunny">Sunny</option>
+                                <option value="Cloudy">Cloudy</option>
+                                <option value="Rainy">Rainy</option>
+                                <option value="Stormy">Stormy</option>
+                                <option value="Snowy">Snowy</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mood</label>
+                            <select name="mood" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                                <option value="Happy">Happy</option>
+                                <option value="Excited">Excited</option>
+                                <option value="Relaxed">Relaxed</option>
+                                <option value="Tired">Tired</option>
+                                <option value="Sad">Sad</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Photos</label>
+                        <input type="file" name="photos" multiple accept="image/*" class="w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea name="notes" rows="4" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+                        <input type="text" name="tags" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="family, sightseeing, food">
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        Add Entry
+                    </button>
+                </form>
+            </div>
+
+            <!-- Map and Entries Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Map -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-2xl font-semibold mb-4">Our Adventures Map</h3>
+                    <div id="journal-map" class="h-[500px] rounded-lg"></div>
+                </div>
+
+                <!-- Journal Entries -->
+                <div class="space-y-6">
+                    <h3 class="text-2xl font-semibold">Recent Entries</h3>
+                    <div id="journal-entries" class="space-y-6 max-h-[500px] overflow-y-auto pr-4">
+                        <!-- Entries will be added dynamically -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>
