@@ -1,11 +1,12 @@
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyDHs8FXq6QxHGUigz6NvMECHYt5QwxCVIk",
+    apiKey: "AIzaSyAzA0ldOdmvjXFrXYtQtt1q49VC41STcqY",
     authDomain: "valencia-adventure.firebaseapp.com",
     projectId: "valencia-adventure",
-    storageBucket: "valencia-adventure.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef0123456789"
+    storageBucket: "valencia-adventure.firebasestorage.app",
+    messagingSenderId: "778644270783",
+    appId: "1:778644270783:web:83a34b7c80f176d4c8600a",
+    measurementId: "G-4V1L50EECY"
 };
 
 // Initialize Firebase
@@ -31,6 +32,12 @@ function initAuth() {
                 user: window.currentUser
             }
         }));
+
+        if (user) {
+            console.log('User logged in:', user.displayName);
+        } else {
+            console.log('User logged out');
+        }
     });
 }
 
