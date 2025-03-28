@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medaglia-Asprilla Family: Valencia Adventure</title>
     
+    <!-- Auth0 SDK -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1.3/auth0-spa-js.production.js"></script>
+    <script src="js/auth.js"></script>
+    
     <!-- GSAP Animation Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
@@ -19,10 +23,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     
-    <!-- Auth0 SDK -->
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1.3/auth0-spa-js.production.js"></script>
-    <script src="js/auth.js"></script>
-    
     <!-- App Scripts -->
     <script src="./js/schools.js" defer></script>
     <script src="./js/budget.js" defer></script>
@@ -34,454 +34,51 @@
     <script src="./js/countdown.js" defer></script>
     <script src="./js/decorative.js" defer></script>
     <script src="js/weather.js" defer></script>
+
+    <!-- Auth Alert -->
+    <div id="auth-alert" class="fixed top-4 right-4 z-50 hidden"></div>
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                    },
-                    animation: {
-                        'float': 'float 3s ease-in-out infinite',
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'float-slow': 'float 8s ease-in-out infinite',
-                        'float-medium': 'float 6s ease-in-out infinite',
-                        'float-fast': 'float 4s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0) scale(1)' },
-                            '50%': { transform: 'translateY(-20px) scale(1.05)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        .hero {
-            background: url('./images/valencia-hero.jpg');
-            background-size: cover;
-            background-position: center;
-            min-height: calc(100vh - 64px);
-        }
-        
-        .countdown-box {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease;
-        }
-        
-        .countdown-box:hover {
-            transform: translateY(-5px);
-        }
-
-        .nav-link {
-            position: relative;
-        }
-
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background-color: #2563eb;
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-        }
-
-        .nav-link:hover::after {
-            width: 100%;
-        }
-
-        .card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease;
-        }
-        
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .parallax {
-            transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
-        }
-
-        .timeline-item {
-            opacity: 0;
-            transform: translateX(-100px);
-            transition: all 0.6s ease;
-        }
-
-        .timeline-item.active {
-            opacity: 1;
-            transform: translateX(0);
-        }
-
-        .weather-card {
-            transform-style: preserve-3d;
-            transition: transform 0.5s;
-        }
-
-        .weather-card:hover {
-            transform: rotateY(180deg);
-        }
-
-        .weather-card-front,
-        .weather-card-back {
-            backface-visibility: hidden;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-
-        .weather-card-back {
-            transform: rotateY(180deg);
-        }
-
-        .budget-progress {
-            position: relative;
-            height: 8px;
-            background: #e5e7eb;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .budget-progress-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: #3b82f6;
-            transition: width 1s ease;
-        }
-
-        .todo-item {
-            transition: all 0.3s ease;
-        }
-
-        .todo-item.completed {
-            opacity: 0.6;
-            text-decoration: line-through;
-        }
-
-        .todo-item:hover {
-            transform: translateX(10px);
-        }
-
-        @keyframes cardFlip {
-            from { transform: perspective(1000px) rotateY(0deg); }
-            to { transform: perspective(1000px) rotateY(360deg); }
-        }
-
-        .flip-card {
-            animation: cardFlip 0.6s ease-out;
-        }
-        
-        .timeline-container {
-            position: relative;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            overflow: hidden;
-        }
-
-        .timeline-container::after {
-            content: '';
-            position: absolute;
-            width: 6px;
-            background: linear-gradient(to bottom, #60A5FA, #2563EB);
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            margin-left: -3px;
-            border-radius: 999px;
-            z-index: 1;
-            box-shadow: 0 0 10px rgba(37, 99, 235, 0.2);
-        }
-
-        .timeline-item {
-            padding: 20px 40px;
-            position: relative;
-            width: 50%;
-            opacity: 0;
-            margin-bottom: 40px;
-        }
-
-        .timeline-item:nth-child(odd) {
-            left: 0;
-            padding-right: 60px;
-        }
-
-        .timeline-item:nth-child(even) {
-            left: 50%;
-            padding-left: 60px;
-        }
-
-        .timeline-content {
-            position: relative;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            z-index: 2;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .timeline-content:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(45deg, #60A5FA, #2563EB);
-            border: 4px solid white;
-            top: 20px;
-            border-radius: 50%;
-            z-index: 3;
-            box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .timeline-item:hover::before {
-            transform: scale(1.2);
-            box-shadow: 0 0 15px rgba(37, 99, 235, 0.4);
-        }
-
-        .timeline-item:nth-child(odd)::before {
-            right: -15px;
-        }
-
-        .timeline-item:nth-child(even)::before {
-            left: -15px;
-        }
-
-        .task {
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .task:hover {
-            background-color: #f3f4f6;
-            transform: translateX(5px);
-        }
-
-        .task .checkbox {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-
-        .task.completed .checkbox {
-            background-color: #2563EB;
-            border-color: #2563EB;
-            transform: scale(1.1);
-        }
-
-        .task.completed {
-            color: #6B7280;
-            text-decoration: line-through;
-            text-decoration-color: #2563EB;
-        }
-
-        .task.completed .checkbox i {
-            color: white;
-        }
-
-        .phase-indicator {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            padding: 4px 8px;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        .current-phase {
-            background-color: #DBEAFE;
-            color: #1E40AF;
-        }
-
-        .completed-phase {
-            background-color: #DCFCE7;
-            color: #166534;
-        }
-
-        .upcoming-phase {
-            background-color: #FEF3C7;
-            color: #92400E;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-        @keyframes wave {
-            0% { transform: translateX(0) translateZ(0) scaleY(1); }
-            50% { transform: translateX(-25%) translateZ(0) scaleY(0.55); }
-            100% { transform: translateX(-50%) translateZ(0) scaleY(1); }
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        .loader-wave {
-            animation: wave 3s linear infinite;
-        }
-        .loader-float {
-            animation: float 3s ease-in-out infinite;
-        }
-        .loader-pulse {
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        /* Geometric Background Pattern */
-        .geometric-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.15;
-            background: 
-                linear-gradient(45deg, #FF9F1C 25%, transparent 25%) -50px 0,
-                linear-gradient(-45deg, #FF9F1C 25%, transparent 25%) -50px 0,
-                linear-gradient(45deg, transparent 75%, #FF9F1C 75%) -50px 0,
-                linear-gradient(-45deg, transparent 75%, #FF9F1C 75%) -50px 0;
-            background-size: 100px 100px;
-            animation: slide 60s linear infinite;
-        }
-
-        @keyframes slide {
-            0% {
-                background-position: -50px 0, -50px 0, -50px 0, -50px 0;
-            }
-            100% {
-                background-position: 50px 100px, 50px 100px, 50px 100px, 50px 100px;
-            }
-        }
-
-        /* Make content sections more translucent to show pattern */
-        .content-section {
-            background-color: rgba(255, 255, 255, 0.75) !important;
-            backdrop-filter: blur(5px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-        }
-
-        .content-section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            background-color: rgba(255, 255, 255, 0.85) !important;
-        }
-
-        /* Gradient overlays for sections */
-        .section-gradient {
-            background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.7) 100%);
-        }
-    </style>
-</head>
-<body class="font-sans bg-white">
-    <!-- Add geometric background -->
-    <div class="geometric-background"></div>
-    <!-- Loader -->
-    <div id="loader" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 transition-opacity duration-500">
-        <div class="relative w-64 h-64">
-            <!-- Central content -->
-            <div class="absolute inset-0 flex flex-col items-center justify-center text-white">
-                <!-- Animated beach icon -->
-                <div class="loader-float mb-4">
-                    <i class="fas fa-umbrella-beach text-5xl"></i>
-                </div>
-                
-                <!-- Family silhouette -->
-                <div class="loader-pulse mb-6">
-                    <div class="flex items-end space-x-2">
-                        <div class="w-6 h-16 bg-white rounded-t-full"></div>
-                        <div class="w-6 h-16 bg-white rounded-t-full"></div>
-                        <div class="w-6 h-12 bg-white rounded-t-full"></div>
-                    </div>
-                </div>
-                
-                <!-- Loading text -->
-                <h2 class="text-2xl font-bold mb-2">Medaglia-Asprilla Family</h2>
-                <p class="text-sm opacity-75">Loading your Valencia adventure...</p>
-                
-                <!-- Loading progress -->
-                <div class="w-32 h-1 bg-white/20 rounded-full mt-4 overflow-hidden">
-                    <div id="loader-progress" class="h-full bg-white rounded-full w-0 transition-all duration-300"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main content -->
-    <div id="main-content" class="opacity-0 transition-opacity duration-500">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-md fixed w-full z-50">
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 left-0 right-0 bg-white bg-opacity-90 backdrop-blur-md shadow-md z-40">
         <div class="max-w-7xl mx-auto px-4">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center">
-                    <a href="#" class="flex items-center space-x-2">
-                        <i class="fas fa-plane-departure text-blue-600 text-2xl"></i>
-                        <span class="text-xl font-bold">Valencia<span class="text-orange-500">Bound</span></span>
-                    </a>
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo/Home -->
+                <a href="#" class="text-xl font-bold text-blue-600">Valencia Adventure</a>
+                
+                <!-- Navigation Links (Desktop) -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#housing" class="text-gray-600 hover:text-blue-600">Housing</a>
+                    <a href="#timeline" class="text-gray-600 hover:text-blue-600">Timeline</a>
+                    <a href="#schools" class="text-gray-600 hover:text-blue-600">Schools</a>
+                    <a href="#budget" class="text-gray-600 hover:text-blue-600">Budget</a>
+                    <a href="#journal" class="text-gray-600 hover:text-blue-600">Journal</a>
                 </div>
-                <div class="hidden md:flex space-x-6">
-                    <a href="#introduction" class="nav-link text-gray-600 hover:text-blue-600">Introduction</a>
-                    <a href="#housing" class="nav-link text-gray-600 hover:text-blue-600">Housing</a>
-                    <a href="#timeline" class="nav-link text-gray-600 hover:text-blue-600">Timeline</a>
-                    <a href="#schools" class="nav-link text-gray-600 hover:text-blue-600">Schools</a>
-                    <a href="#weather" class="nav-link text-gray-600 hover:text-blue-600">Weather</a>
-                    <a href="#budget" class="nav-link text-gray-600 hover:text-blue-600">Budget</a>
-                    <a href="#currency" class="nav-link text-gray-600 hover:text-blue-600">Currency</a>
-                    <a href="#journal" class="nav-link text-gray-600 hover:text-blue-600">Journal</a>
-                    <a href="#about" class="nav-link text-gray-600 hover:text-blue-600">About</a>
-                </div>
-                <div class="md:hidden">
-                    <button id="menu-toggle" class="text-gray-600 hover:text-blue-600">
-                        <i class="fas fa-bars text-2xl"></i>
+                
+                <!-- User Section -->
+                <div class="flex items-center space-x-4">
+                    <!-- User Profile (hidden by default) -->
+                    <div id="userSection" class="hidden items-center space-x-2">
+                        <img id="userPicture" class="w-8 h-8 rounded-full hidden" alt="Profile">
+                        <span id="userName" class="text-sm font-medium"></span>
+                        <button id="logoutBtn" onclick="logout()" class="hidden text-sm text-red-600 hover:text-red-800">
+                            Logout
+                        </button>
+                    </div>
+                    
+                    <!-- Login Button -->
+                    <button id="loginBtn" onclick="login()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        Login
                     </button>
-                </div>
-                <div class="flex items-center">
-                    <button id="login-btn" onclick="login()" class="text-blue-600 hover:text-blue-800">Login</button>
-                    <div id="user-menu" class="hidden"></div>
-                    <button id="logout-btn" onclick="logout()" class="hidden bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-4">
-                        Logout
+                    
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-gray-900">
+                        <i class="fas fa-bars"></i>
                     </button>
                 </div>
             </div>
         </div>
     </nav>
-
+    
     <!-- Mobile Menu -->
     <div id="mobile-menu" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden">
         <div class="fixed right-0 top-0 bottom-0 w-64 bg-white p-6">
@@ -492,15 +89,11 @@
                 </button>
             </div>
             <div class="flex flex-col space-y-4">
-                <a href="#introduction" class="text-gray-600 hover:text-blue-600">Introduction</a>
                 <a href="#housing" class="text-gray-600 hover:text-blue-600">Housing</a>
                 <a href="#timeline" class="text-gray-600 hover:text-blue-600">Timeline</a>
                 <a href="#schools" class="text-gray-600 hover:text-blue-600">Schools</a>
-                <a href="#weather" class="text-gray-600 hover:text-blue-600">Weather</a>
                 <a href="#budget" class="text-gray-600 hover:text-blue-600">Budget</a>
-                <a href="#currency" class="text-gray-600 hover:text-blue-600">Currency</a>
                 <a href="#journal" class="text-gray-600 hover:text-blue-600">Journal</a>
-                <a href="#about" class="text-gray-600 hover:text-blue-600">About</a>
             </div>
         </div>
     </div>
@@ -1421,7 +1014,7 @@
     <section id="weather" class="py-12 bg-gradient-to-br from-blue-50 to-purple-50">
         <div class="max-w-7xl mx-auto px-4">
             <h2 class="text-4xl font-bold text-center mb-2">Valencia Weather <span class="text-2xl">🌞</span></h2>
-            <p class="text-xl text-center text-gray-600 mb-8">Real-time weather updates <span class="text-xl">🌡️</span></p>
+            <p class="text-xl text-center text-gray-600 mb-16">Real-time weather updates <span class="text-xl">🌡️</span></p>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Weather Widget -->
@@ -2001,34 +1594,4 @@
     </section>
 </div>
 </body>
-<!-- Auth0 -->
-<script src="https://cdn.auth0.com/js/auth0-spa-js/2.1.3/auth0-spa-js.production.js"></script>
-<script src="./js/auth.js"></script>
-
-<script>
-    // Loader functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const loader = document.getElementById('loader');
-        const mainContent = document.getElementById('main-content');
-        const progress = document.getElementById('loader-progress');
-        
-        // Simulate loading progress
-        let width = 0;
-        const interval = setInterval(() => {
-            width += Math.random() * 15;
-            if (width > 100) {
-                width = 100;
-                clearInterval(interval);
-                setTimeout(() => {
-                    loader.style.opacity = '0';
-                    mainContent.style.opacity = '1';
-                    setTimeout(() => {
-                        loader.style.display = 'none';
-                    }, 500);
-                }, 500);
-            }
-            progress.style.width = width + '%';
-        }, 200);
-    });
-</script>
 </html>
