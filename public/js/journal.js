@@ -7,6 +7,9 @@ const API_BASE_URL = window.location.hostname === 'm3libere28.github.io'
     ? 'https://personal-website-taupe-pi-67.vercel.app'
     : window.location.origin;
 
+// Initialize Firestore
+const db = firebase.firestore();
+
 // Initialize the journal feature
 async function initializeJournal() {
     console.log('Initializing journal feature...');
@@ -35,29 +38,32 @@ async function initializeJournal() {
     form.addEventListener('submit', handleJournalSubmit);
 }
 
-// Load journal entries from the server
+// Load journal entries from Firestore
 async function loadJournalEntries() {
-    try {
-        if (!window.isAuthenticated) {
-            console.log('User not authenticated, skipping journal load');
-            return;
-        }
+    if (!window.isAuthenticated || !window.currentUser) {
+        console.log('User not authenticated, skipping journal load');
+        return;
+    }
 
-        const token = await window.getAccessToken();
-        const response = await fetch(`${API_BASE_URL}/api/journal/entries`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+    try {
+        const snapshot = await db.collection('users')
+            .doc(window.currentUser.uid)
+            .collection('journal')
+            .orderBy('createdAt', 'desc')
+            .get();
+
+        const entries = [];
+        snapshot.forEach(doc => {
+            entries.push({
+                id: doc.id,
+                ...doc.data()
+            });
         });
 
-        if (response.ok) {
-            const entries = await response.json();
-            displayJournalEntries(entries);
-        } else {
-            throw new Error('Failed to load journal entries');
-        }
+        displayJournalEntries(entries);
     } catch (error) {
         console.error('Error loading journal entries:', error);
+        alert('Failed to load journal entries. Please try again.');
     }
 }
 
@@ -71,67 +77,19 @@ function displayJournalEntries(entries) {
         const entryElement = document.createElement('div');
         entryElement.className = 'journal-entry bg-white rounded-lg shadow-md p-6 mb-4';
         entryElement.innerHTML = `
-            <h4 class="text-xl font-semibold mb-2">${entry.title}</h4>
-            <div class="text-gray-600 mb-3">${new Date(entry.date).toLocaleDateString()}</div>
-            <p class="text-gray-700">${entry.content}</p>
-        `;
-        entriesContainer.appendChild(entryElement);
-    });
-}
-
-// Update the UI with journal entries
-function updateJournalEntries() {
-    // Clear existing markers
-    journalMarkers.forEach(marker => marker.remove());
-    journalMarkers = [];
-
-    // Clear entries grid
-    const entriesGrid = document.getElementById('journal-entries');
-    entriesGrid.innerHTML = '';
-
-    // Sort entries by date (newest first)
-    journalEntries.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    // Add entries to map and grid
-    journalEntries.forEach(entry => {
-        // Add marker to map
-        if (entry.location && entry.location.lat && entry.location.lng) {
-            const marker = L.marker([entry.location.lat, entry.location.lng])
-                .bindPopup(`
-                    <h3 class="font-semibold">${entry.title}</h3>
-                    <p class="text-sm text-gray-600">${entry.date}</p>
-                    <p>${entry.content}</p>
-                `);
-            marker.addTo(journalMap);
-            journalMarkers.push(marker);
-        }
-
-        // Add entry to grid
-        const entryElement = document.createElement('div');
-        entryElement.className = 'bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow';
-        entryElement.innerHTML = `
-            <div class="flex justify-between items-start mb-4">
+            <div class="flex justify-between items-start">
                 <div>
-                    <h3 class="text-xl font-semibold">${entry.title}</h3>
-                    <p class="text-sm text-gray-600">${new Date(entry.date).toLocaleDateString()}</p>
+                    <h4 class="text-xl font-semibold mb-2">${entry.title}</h4>
+                    <div class="text-gray-600 mb-3">${new Date(entry.date).toLocaleDateString()}</div>
+                    <p class="text-gray-700">${entry.content}</p>
                 </div>
-                <button onclick="deleteJournalEntry('${entry._id}')" 
-                        class="text-red-500 hover:text-red-700 transition-colors">
+                <button onclick="deleteJournalEntry('${entry.id}')" class="text-red-600 hover:text-red-800">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
-            <p class="mb-4">${entry.content}</p>
-            ${entry.mood ? `<p class="text-gray-600">Mood: ${entry.mood}</p>` : ''}
-            ${entry.weather ? `<p class="text-gray-600">Weather: ${entry.weather}</p>` : ''}
         `;
-        entriesGrid.appendChild(entryElement);
+        entriesContainer.appendChild(entryElement);
     });
-
-    // Center map on markers if any exist
-    if (journalMarkers.length > 0) {
-        const group = L.featureGroup(journalMarkers);
-        journalMap.fitBounds(group.getBounds().pad(0.1));
-    }
 }
 
 // Handle journal form submission
@@ -158,86 +116,105 @@ async function handleJournalSubmit(event) {
             }
         };
 
-        const response = await fetch(`${API_BASE_URL}/api/journal/entries`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(formData)
-        });
+        // Add entry to Firestore
+        await db.collection('users')
+            .doc(window.currentUser.uid)
+            .collection('journal')
+            .add({
+                title: formData.title,
+                content: formData.content,
+                date: formData.date,
+                mood: formData.mood,
+                weather: formData.weather,
+                location: formData.location,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // Clear form
+        form.reset();
 
-        const data = await response.json();
-        if (data.success) {
-            form.reset();
-            await loadJournalEntries();
-            showSuccess('Journal entry added successfully!');
-        } else {
-            throw new Error('Failed to add journal entry');
-        }
+        // Show success message
+        alert('Journal entry saved successfully!');
+
+        // Refresh entries
+        loadJournalEntries();
     } catch (error) {
         console.error('Error adding journal entry:', error);
-        showError('Failed to add journal entry. Please try again.');
+        alert('Failed to add journal entry. Please try again.');
     }
 }
 
-// Delete a journal entry
-async function deleteJournalEntry(entryId) {
+// Delete journal entry
+window.deleteJournalEntry = async function(entryId) {
+    if (!window.isAuthenticated || !window.currentUser) {
+        alert('Please log in to delete entries.');
+        return;
+    }
+
     if (!confirm('Are you sure you want to delete this entry?')) {
         return;
     }
 
     try {
-        const token = await window.getAccessToken();
-        if (!token) {
-            throw new Error('No access token available');
-        }
+        await db.collection('users')
+            .doc(window.currentUser.uid)
+            .collection('journal')
+            .doc(entryId)
+            .delete();
 
-        const response = await fetch(`${API_BASE_URL}/api/journal/entries/${entryId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+        // Refresh entries
+        loadJournalEntries();
+        alert('Entry deleted successfully!');
+    } catch (error) {
+        console.error('Error deleting entry:', error);
+        alert('Failed to delete entry. Please try again.');
+    }
+};
+
+// Export functionality
+window.exportJournal = async function() {
+    if (!window.isAuthenticated || !window.currentUser) {
+        alert('Please log in to export entries.');
+        return;
+    }
+
+    try {
+        const snapshot = await db.collection('users')
+            .doc(window.currentUser.uid)
+            .collection('journal')
+            .orderBy('createdAt', 'desc')
+            .get();
+
+        const entries = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            entries.push({
+                id: doc.id,
+                title: data.title,
+                content: data.content,
+                date: data.date
+            });
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        if (entries.length === 0) {
+            alert('No entries to export.');
+            return;
         }
 
-        const data = await response.json();
-        if (data.success) {
-            await loadJournalEntries();
-            showSuccess('Journal entry deleted successfully!');
-        } else {
-            throw new Error('Failed to delete journal entry');
-        }
+        const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `journal_entries_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     } catch (error) {
-        console.error('Error deleting journal entry:', error);
-        showError('Failed to delete journal entry. Please try again.');
+        console.error('Error exporting entries:', error);
+        alert('Failed to export entries. Please try again.');
     }
-}
-
-// Show success message
-function showSuccess(message) {
-    const alert = document.getElementById('journal-alert');
-    alert.textContent = message;
-    alert.className = 'bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4';
-    alert.style.display = 'block';
-    setTimeout(() => alert.style.display = 'none', 3000);
-}
-
-// Show error message
-function showError(message) {
-    const alert = document.getElementById('journal-alert');
-    alert.textContent = message;
-    alert.className = 'bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4';
-    alert.style.display = 'block';
-    setTimeout(() => alert.style.display = 'none', 3000);
-}
+};
 
 // Listen for auth state changes
 window.addEventListener('authStateChanged', (event) => {
@@ -252,9 +229,6 @@ window.addEventListener('authStateChanged', (event) => {
         document.getElementById('journal').style.display = 'none';
     }
 });
-
-// Journal management
-let journalEntries = [];
 
 // Initialize journal functionality
 document.addEventListener('DOMContentLoaded', () => {
@@ -277,51 +251,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            const entry = {
-                title,
-                content,
-                date: new Date().toISOString()
-            };
-            
-            journalEntries.push(entry);
-            displayJournalEntries();
-            journalForm.reset();
+            try {
+                // Add entry to Firestore
+                await db.collection('users')
+                    .doc(window.currentUser.uid)
+                    .collection('journal')
+                    .add({
+                        title,
+                        content,
+                        date: new Date().toISOString(),
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                
+                // Clear form
+                journalForm.reset();
+                
+                // Show success message
+                alert('Journal entry saved successfully!');
+                
+                // Refresh entries
+                loadJournalEntries();
+            } catch (error) {
+                console.error('Error saving journal entry:', error);
+                alert('Failed to save journal entry. Please try again.');
+            }
         });
     }
-});
 
-function displayJournalEntries() {
-    const entriesContainer = document.getElementById('journal-entries');
-    if (!entriesContainer) return;
-
-    entriesContainer.innerHTML = journalEntries.length ? '' : '<p class="text-gray-600">No entries yet. Start writing!</p>';
-    
-    journalEntries.forEach(entry => {
-        const entryElement = document.createElement('div');
-        entryElement.className = 'journal-entry bg-white rounded-lg shadow-md p-6 mb-4';
-        entryElement.innerHTML = `
-            <h4 class="text-xl font-semibold mb-2">${entry.title}</h4>
-            <div class="text-gray-600 mb-3">${new Date(entry.date).toLocaleDateString()}</div>
-            <p class="text-gray-700">${entry.content}</p>
-        `;
-        entriesContainer.appendChild(entryElement);
+    // Listen for auth state changes
+    window.addEventListener('authStateChanged', (e) => {
+        if (e.detail.isAuthenticated) {
+            loadJournalEntries();
+        } else {
+            // Clear entries when logged out
+            displayJournalEntries([]);
+        }
     });
-}
 
-// Export functionality
-window.exportJournal = function() {
-    if (journalEntries.length === 0) {
-        alert('No entries to export.');
-        return;
+    // Initial load if authenticated
+    if (window.isAuthenticated) {
+        loadJournalEntries();
     }
-    
-    const blob = new Blob([JSON.stringify(journalEntries, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'journal_entries.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-};
+});
