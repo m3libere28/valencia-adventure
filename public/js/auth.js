@@ -41,7 +41,7 @@ let userProfile = null;
 async function initAuth() {
     try {
         console.log('Initializing Auth0 client...');
-        auth0Client = await createAuth0Client({
+        auth0Client = await auth0.createAuth0Client({
             domain: auth0Config.domain,
             clientId: auth0Config.clientId,
             authorizationParams: {
@@ -55,7 +55,6 @@ async function initAuth() {
 
         console.log('Auth0 client initialized');
 
-        // Check for authentication state on page load
         if (window.location.search.includes("code=") || window.location.search.includes("error=")) {
             console.log('Auth code or error detected, handling redirect...');
             try {
@@ -69,7 +68,6 @@ async function initAuth() {
             }
         }
 
-        // Update authentication state
         window.isAuthenticated = await auth0Client.isAuthenticated();
         if (window.isAuthenticated) {
             userProfile = await auth0Client.getUser();
@@ -78,7 +76,6 @@ async function initAuth() {
             console.log('User is not authenticated');
         }
 
-        // Update UI and dispatch event
         updateUI();
         window.dispatchEvent(new CustomEvent('authStateChanged', {
             detail: { isAuthenticated: window.isAuthenticated }

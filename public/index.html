@@ -6,12 +6,7 @@
     <title>Medaglia-Asprilla Family: Valencia Adventure</title>
     
     <!-- Auth0 SDK -->
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1.3/auth0-spa-js.production.js"></script>
-    <script src="js/auth.js"></script>
-    
-    <!-- GSAP Animation Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1.3/auth0-spa-js.production.js" defer></script>
     
     <!-- Core Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -23,7 +18,12 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     
-    <!-- App Scripts -->
+    <!-- GSAP Animation Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    
+    <!-- App Scripts - Load these after Auth0 -->
+    <script src="js/auth.js" defer></script>
     <script src="./js/schools.js" defer></script>
     <script src="./js/budget.js" defer></script>
     <script src="./js/journal.js" defer></script>
