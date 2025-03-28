@@ -48,7 +48,7 @@
 
     <style>
         .hero {
-            background: url('https://images.unsplash.com/photo-1599484233778-5e1a27d58861?auto=format&fit=crop&w=1920&q=80');
+            background: url('https://cdn.pixabay.com/photo/2019/09/15/08/06/valencia-4477852_1280.jpg');
             background-size: cover;
             background-position: center;
             min-height: calc(100vh - 64px);
@@ -439,59 +439,58 @@
 
     <!-- Hero Section -->
     <section class="relative h-screen overflow-hidden">
-        <!-- Hero Image -->
+        <!-- Hero Background -->
         <div class="absolute inset-0">
-            <img src="./images/valencia-hero.jpg" alt="Valencia coastline with historic bell tower" 
-                 class="w-full h-full object-cover transform scale-105 animate-slow-zoom"
-                 style="animation: slow-zoom 20s infinite alternate;">
+            <img src="https://cdn.pixabay.com/photo/2019/09/15/08/06/valencia-4477852_1280.jpg" 
+                 alt="Valencia City of Arts and Sciences" 
+                 class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-b from-black/30 to-transparent"></div>
         </div>
         
         <!-- Hero Content -->
-        <div class="relative h-full flex items-center justify-center text-white px-4">
-            <div class="text-center max-w-4xl backdrop-blur-sm bg-black/5 p-8 rounded-2xl">
-                <h1 class="text-5xl md:text-7xl font-bold mb-6 opacity-0 animate-fade-in-up text-shadow-lg"
-                    style="animation: fade-in-up 1s forwards 0.5s; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                    Our Valencia Adventure
-                </h1>
-                <p class="text-xl md:text-2xl mb-8 opacity-0 animate-fade-in-up text-shadow-md"
-                   style="animation: fade-in-up 1s forwards 0.8s; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
-                    Join the Medaglia-Asprilla family as we embark on our journey to beautiful Valencia, Spain
-                </p>
-                <div class="opacity-0 animate-fade-in-up"
-                     style="animation: fade-in-up 1s forwards 1.1s;">
-                    <a href="#introduction" 
-                       class="inline-block px-8 py-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 
-                              text-white rounded-full transition-all duration-300 border-2 border-white/50
-                              hover:scale-105 transform">
-                        Discover Our Story
-                    </a>
-                </div>
-            </div>
+        <div class="relative h-full flex flex-col justify-center items-center text-center text-white px-4">
+            <h1 class="text-5xl md:text-7xl font-bold mb-4 tracking-wider text-shadow-lg animate-fade-in">
+                Valencia Adventure
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 max-w-2xl text-shadow-md animate-fade-in-delay">
+                Join the Medaglia-Asprilla family on our journey to a new life in beautiful Valencia, Spain
+            </p>
+            <a href="#about" class="bg-white/20 backdrop-blur-sm text-white px-8 py-3 rounded-full 
+                                  hover:bg-white/30 transition-all duration-300 animate-fade-in-delay-2">
+                Discover Our Story
+            </a>
         </div>
 
-        <!-- Scroll Indicator -->
-        <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <i class="fas fa-chevron-down text-white text-2xl opacity-75 text-shadow-lg"></i>
-        </div>
-    </section>
-
-    <style>
-        @keyframes slow-zoom {
-            from { transform: scale(1); }
-            to { transform: scale(1.1); }
-        }
-        
-        @keyframes fade-in-up {
-            from {
+        <style>
+            .text-shadow-lg {
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            }
+            
+            .text-shadow-md {
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            }
+            
+            .animate-fade-in {
                 opacity: 0;
-                transform: translateY(20px);
+                animation: fade-in 1s forwards;
             }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            
+            .animate-fade-in-delay {
+                opacity: 0;
+                animation: fade-in 1s forwards 0.3s;
             }
-        }
-    </style>
+            
+            .animate-fade-in-delay-2 {
+                opacity: 0;
+                animation: fade-in 1s forwards 0.6s;
+            }
+            
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        </style>
+    </section>
 
     <!-- Introduction Section -->
     <section id="introduction" class="relative py-24 bg-gradient-to-br from-blue-50 to-purple-50 overflow-hidden">
