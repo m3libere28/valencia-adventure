@@ -3,6 +3,7 @@ from flask_cors import CORS
 from pymongo import MongoClient
 import os
 import sys
+import json
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -16,6 +17,8 @@ MONGODB_URI = os.getenv('MONGODB_URI')
 if not MONGODB_URI:
     print("No MongoDB URI found!", file=sys.stderr)
     raise Exception("MongoDB URI not configured")
+
+print(f"Connecting to MongoDB with URI: {MONGODB_URI[:20]}...")  # Print first 20 chars for safety
 
 try:
     client = MongoClient(MONGODB_URI)
@@ -35,8 +38,18 @@ def index():
 @app.route('/api/submit-form', methods=['POST'])
 def submit_form():
     try:
+        print("Received POST request to /api/submit-form")
         data = request.get_json()
-        print(f"Received form data: {data}")
+        print(f"Received data: {json.dumps(data, indent=2)}")
+        
+        if not data:
+            raise ValueError("No data received")
+        
+        # Validate required fields
+        required_fields = ['title', 'date', 'notes']
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
         
         # Insert the data into MongoDB
         result = entries_collection.insert_one(data)
@@ -48,15 +61,17 @@ def submit_form():
             "id": str(result.inserted_id)
         })
     except Exception as e:
-        print(f"Error saving form data: {str(e)}", file=sys.stderr)
+        error_msg = str(e)
+        print(f"Error saving form data: {error_msg}", file=sys.stderr)
         return jsonify({
             "success": False, 
-            "message": f"Failed to save entry: {str(e)}"
+            "message": f"Failed to save entry: {error_msg}"
         }), 400
 
 @app.route('/api/submit-form', methods=['GET'])
 def get_entries():
     try:
+        print("Received GET request to /api/submit-form")
         # Retrieve all entries from MongoDB
         entries = list(entries_collection.find({}, {'_id': 0}))
         print(f"Retrieved {len(entries)} entries")
@@ -65,10 +80,11 @@ def get_entries():
             "entries": entries
         })
     except Exception as e:
-        print(f"Error retrieving entries: {str(e)}", file=sys.stderr)
+        error_msg = str(e)
+        print(f"Error retrieving entries: {error_msg}", file=sys.stderr)
         return jsonify({
             "success": False, 
-            "message": f"Failed to retrieve entries: {str(e)}"
+            "message": f"Failed to retrieve entries: {error_msg}"
         }), 400
 
 # For local development

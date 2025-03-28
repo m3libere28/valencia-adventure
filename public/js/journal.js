@@ -71,27 +71,29 @@ async function addJournalEntry(e) {
     e.preventDefault();
     const form = e.target;
     
-    // Get location from map click or input
-    const location = form.querySelector('[name="location"]').value.split(',').map(Number);
-    
-    // Handle photo uploads
-    const photoFiles = form.querySelector('[name="photos"]').files;
-    const photos = await handleImageUpload(photoFiles);
-
-    const entry = {
-        id: Date.now(),
-        date: form.querySelector('[name="date"]').value,
-        title: form.querySelector('[name="title"]').value,
-        location: location,
-        locationName: form.querySelector('[name="location-name"]').value,
-        notes: form.querySelector('[name="notes"]').value,
-        photos: photos,
-        weather: form.querySelector('[name="weather"]').value,
-        mood: form.querySelector('[name="mood"]').value,
-        tags: form.querySelector('[name="tags"]').value.split(',').map(tag => tag.trim())
-    };
-
     try {
+        // Get location from map click or input
+        const location = form.querySelector('[name="location"]').value.split(',').map(Number);
+        
+        // Handle photo uploads
+        const photoFiles = form.querySelector('[name="photos"]').files;
+        const photos = await handleImageUpload(photoFiles);
+
+        const entry = {
+            id: Date.now(),
+            date: form.querySelector('[name="date"]').value,
+            title: form.querySelector('[name="title"]').value,
+            location: location,
+            locationName: form.querySelector('[name="location-name"]').value,
+            notes: form.querySelector('[name="notes"]').value,
+            photos: photos,
+            weather: form.querySelector('[name="weather"]').value,
+            mood: form.querySelector('[name="mood"]').value,
+            tags: form.querySelector('[name="tags"]').value.split(',').map(tag => tag.trim())
+        };
+
+        console.log('Submitting entry:', entry);
+
         const response = await fetch('/api/submit-form', {
             method: 'POST',
             headers: {
@@ -100,19 +102,23 @@ async function addJournalEntry(e) {
             body: JSON.stringify(entry)
         });
 
+        console.log('Response status:', response.status);
         const data = await response.json();
+        console.log('Response data:', data);
+
         if (data.success) {
             journalEntries.push(entry);
             addMarkerToMap(entry);
             updateJournalEntries();
             form.reset();
+            alert('Entry saved successfully!');
         } else {
-            console.error('Error saving entry:', data.message);
-            alert('Failed to save entry. Please try again.');
+            console.error('Server error:', data.message);
+            alert('Failed to save entry: ' + data.message);
         }
     } catch (error) {
         console.error('Error saving entry:', error);
-        alert('Failed to save entry. Please try again.');
+        alert('Failed to save entry: ' + error.message);
     }
 }
 
