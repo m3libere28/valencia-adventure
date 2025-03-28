@@ -60,13 +60,13 @@
                     <div id="userSection" class="hidden items-center space-x-2">
                         <img id="userPicture" class="w-8 h-8 rounded-full hidden" alt="Profile">
                         <span id="userName" class="text-sm font-medium"></span>
-                        <button id="logoutBtn" onclick="logout()" class="hidden text-sm text-red-600 hover:text-red-800">
+                        <button id="logoutBtn" class="hidden text-sm text-red-600 hover:text-red-800">
                             Logout
                         </button>
                     </div>
                     
                     <!-- Login Button -->
-                    <button id="loginBtn" onclick="login()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    <button id="loginBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                         Login
                     </button>
                     
@@ -573,8 +573,7 @@
                         <label class="text-sm font-medium text-gray-700">Include utility estimates</label>
                     </div>
                     
-                    <button onclick="calculateTotalCost()"
-                            class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+                    <button id="calculate-total-cost" class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
                                    hover:from-blue-700 hover:to-purple-700 transition-all duration-300
                                    flex items-center justify-center space-x-2">
                         <i class="fas fa-calculator"></i>
@@ -634,6 +633,10 @@
             </div>
         </div>
     </section>
+
+    <script>
+        document.getElementById('calculate-total-cost').addEventListener('click', calculateTotalCost);
+    </script>
 
     <!-- Timeline Section -->
     <section id="timeline" class="py-20 bg-gray-50">
@@ -1155,7 +1158,7 @@
                 <div class="bg-white rounded-xl shadow-lg p-6 content-section">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="text-xl font-semibold">Total Budget</h4>
-                        <button onclick="setTotalBudget()" class="text-blue-500 hover:text-blue-700">
+                        <button id="set-total-budget" class="text-blue-500 hover:text-blue-700">
                             <i class="fas fa-edit"></i>
                         </button>
                     </div>
@@ -1251,7 +1254,7 @@
                 <div class="p-6 flex justify-between items-center">
                     <h4 class="text-2xl font-semibold">Recent Expenses</h4>
                     <div class="space-x-4">
-                        <button onclick="exportBudgetData()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                        <button id="export-budget-data" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
                             <i class="fas fa-download mr-2"></i>Export
                         </button>
                         <label class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer">
@@ -1279,6 +1282,11 @@
             </div>
         </div>
     </section>
+
+    <script>
+        document.getElementById('set-total-budget').addEventListener('click', setTotalBudget);
+        document.getElementById('export-budget-data').addEventListener('click', exportBudgetData);
+    </script>
 
     <!-- Currency Exchange Section -->
     <section id="currency" class="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
@@ -1321,7 +1329,7 @@
                             <option value="CHF">CHF - Swiss Franc</option>
                             <option value="CNY">CNY - Chinese Yuan</option>
                         </select>
-                        <button onclick="swapCurrencies()" 
+                        <button id="swap-currencies" 
                                 class="absolute -left-4 top-8 transform -translate-x-full bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             <i class="fas fa-exchange-alt"></i>
                         </button>
@@ -1335,6 +1343,10 @@
         </div>
     </section>
 
+    <script>
+        document.getElementById('swap-currencies').addEventListener('click', swapCurrencies);
+    </script>
+
     <!-- Family Journal Section -->
     <section id="journal" class="py-20 bg-gray-50 protected-feature">
         <div class="max-w-7xl mx-auto px-4">
@@ -1346,7 +1358,7 @@
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-2xl font-semibold">Add New Entry</h3>
                     <div class="space-x-4">
-                        <button onclick="exportJournal()" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                        <button id="export-journal" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
                             <i class="fas fa-download mr-2"></i>Export Journal
                         </button>
                         <label class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer">
@@ -1430,6 +1442,10 @@
             </div>
         </div>
     </section>
+
+    <script>
+        document.getElementById('export-journal').addEventListener('click', exportJournal);
+    </script>
 
     <!-- Family Adventure Section -->
     <section id="about" class="py-20 bg-gradient-to-b from-blue-50 to-purple-50">

@@ -208,6 +208,20 @@ function showError(message) {
 // Initialize authentication when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing Auth0...');
+    
+    // Set up event listeners for login/logout buttons
+    const loginBtn = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    if (loginBtn) {
+        loginBtn.addEventListener('click', window.login);
+    }
+    
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', window.logout);
+    }
+    
+    // Initialize Auth0
     initAuth().catch(error => {
         console.error('Failed to initialize Auth0:', error);
         showError('Failed to initialize authentication system.');
