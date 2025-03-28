@@ -1,123 +1,56 @@
-// Auth0 configuration
-const auth0Config = {
-    domain: 'dev-mjqed8dmtwvb4k7g.us.auth0.com',
-    clientId: 'SxEHt2Va5RCRtoYiQo0rk4URxriq6QN6',
-    redirectUri: window.location.origin,
-    audience: 'https://dev-mjqed8dmtwvb4k7g.us.auth0.com/api/v2/',
-    scope: 'openid profile email'
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyDHs8FXq6QxHGUigz6NvMECHYt5QwxCVIk",
+    authDomain: "valencia-adventure.firebaseapp.com",
+    projectId: "valencia-adventure",
+    storageBucket: "valencia-adventure.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdef0123456789"
 };
 
-// List of allowed origins for Auth0
-const allowedOrigins = [
-    'http://localhost:8000',
-    'https://personal-website-taupe-pi-67.vercel.app',
-    'https://m3libere28.github.io'
-];
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 
-// API base URL based on environment
-const API_BASE_URL = window.location.hostname === 'm3libere28.github.io'
-    ? 'https://personal-website-taupe-pi-67.vercel.app'
-    : window.location.origin;
-
-// Validate current origin
-if (!allowedOrigins.includes(window.location.origin)) {
-    console.error('Warning: Current origin not in allowed list:', window.location.origin);
-}
-
-// Log environment info to help with debugging
-console.log('Environment:', {
-    origin: window.location.origin,
-    hostname: window.location.hostname,
-    protocol: window.location.protocol,
-    isAllowedOrigin: allowedOrigins.includes(window.location.origin),
-    apiBaseUrl: API_BASE_URL
-});
-
-let auth0Client = null;
+// Global auth state
 window.isAuthenticated = false;
-let userProfile = null;
+window.currentUser = null;
 
-// Initialize Auth0 client
-async function initAuth() {
-    try {
-        console.log('Initializing Auth0 client...');
-        auth0Client = await auth0.createAuth0Client({
-            domain: auth0Config.domain,
-            clientId: auth0Config.clientId,
-            authorizationParams: {
-                redirect_uri: auth0Config.redirectUri,
-                audience: auth0Config.audience,
-                scope: auth0Config.scope
-            },
-            cacheLocation: 'localstorage',
-            useRefreshTokens: true
-        });
-
-        console.log('Auth0 client initialized');
-
-        if (window.location.search.includes("code=") || window.location.search.includes("error=")) {
-            console.log('Auth code or error detected, handling redirect...');
-            try {
-                await auth0Client.handleRedirectCallback();
-                window.history.replaceState({}, document.title, window.location.pathname);
-                console.log('Redirect handled successfully');
-            } catch (err) {
-                console.error('Error handling redirect:', err);
-                showError('Failed to complete authentication. Please try again.');
-                return;
-            }
-        }
-
-        window.isAuthenticated = await auth0Client.isAuthenticated();
-        if (window.isAuthenticated) {
-            userProfile = await auth0Client.getUser();
-            console.log('User is authenticated:', userProfile);
-        } else {
-            console.log('User is not authenticated');
-        }
-
+// Initialize authentication
+function initAuth() {
+    // Listen for auth state changes
+    auth.onAuthStateChanged((user) => {
+        window.isAuthenticated = !!user;
+        window.currentUser = user;
         updateUI();
+        
+        // Dispatch event for other components
         window.dispatchEvent(new CustomEvent('authStateChanged', {
-            detail: { isAuthenticated: window.isAuthenticated }
+            detail: { 
+                isAuthenticated: window.isAuthenticated,
+                user: window.currentUser
+            }
         }));
-
-    } catch (err) {
-        console.error('Auth initialization error:', err);
-        showError('Failed to initialize authentication. Please refresh the page.');
-    }
+    });
 }
 
-// Make auth functions globally available
+// Login function
 window.login = async function() {
-    if (!auth0Client) {
-        console.error('Auth0 client not initialized');
-        showError('Authentication system not ready. Please refresh the page.');
-        return;
-    }
-    
     try {
-        console.log('Starting login process...');
-        await auth0Client.loginWithRedirect({
-            authorizationParams: {
-                redirect_uri: window.location.origin
-            }
-        });
-    } catch (err) {
-        console.error('Login error:', err);
-        showError('Failed to start login process. Please try again.');
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+    } catch (error) {
+        console.error('Login error:', error);
+        showError('Failed to login. Please try again.');
     }
 };
 
+// Logout function
 window.logout = async function() {
     try {
-        console.log('Starting logout process...');
-        await auth0Client.logout({
-            logoutParams: {
-                returnTo: window.location.origin
-            }
-        });
-    } catch (err) {
-        console.error('Logout error:', err);
+        await auth.signOut();
+    } catch (error) {
+        console.error('Logout error:', error);
         showError('Failed to logout. Please try again.');
     }
 };
@@ -125,13 +58,14 @@ window.logout = async function() {
 // Get access token for API calls
 window.getAccessToken = async function() {
     try {
-        if (!auth0Client) {
-            throw new Error('Auth0 client not initialized');
+        const user = auth.currentUser;
+        if (!user) {
+            throw new Error('No user logged in');
         }
-        return await auth0Client.getTokenSilently();
-    } catch (err) {
-        console.error('Error getting access token:', err);
-        throw err;
+        return await user.getIdToken();
+    } catch (error) {
+        console.error('Error getting access token:', error);
+        throw error;
     }
 };
 
@@ -143,7 +77,7 @@ function updateUI() {
     const userPicture = document.getElementById('userPicture');
     const userName = document.getElementById('userName');
     
-    if (window.isAuthenticated && userProfile) {
+    if (window.isAuthenticated && window.currentUser) {
         // Hide login button
         if (loginBtn) loginBtn.classList.add('hidden');
         
@@ -156,10 +90,10 @@ function updateUI() {
         
         // Update user info
         if (userPicture) {
-            userPicture.src = userProfile.picture;
+            userPicture.src = window.currentUser.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(window.currentUser.displayName);
             userPicture.classList.remove('hidden');
         }
-        if (userName) userName.textContent = userProfile.name;
+        if (userName) userName.textContent = window.currentUser.displayName;
         
         // Show protected features
         document.querySelectorAll('.protected-feature').forEach(el => {
@@ -205,9 +139,10 @@ function showError(message) {
     }
 }
 
-// Initialize authentication when the page loads
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing Auth0...');
+    console.log('DOM loaded, initializing Firebase Auth...');
+    initAuth();
     
     // Set up event listeners for login/logout buttons
     const loginBtn = document.getElementById('loginBtn');
@@ -220,10 +155,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', window.logout);
     }
-    
-    // Initialize Auth0
-    initAuth().catch(error => {
-        console.error('Failed to initialize Auth0:', error);
-        showError('Failed to initialize authentication system.');
-    });
 });
