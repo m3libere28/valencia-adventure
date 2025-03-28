@@ -4,8 +4,37 @@ const db = window.db;
 // Journal management
 let journalEntries = [];
 
+// Initialize journal when auth state changes
+document.addEventListener('DOMContentLoaded', () => {
+    // Listen for auth state changes
+    window.addEventListener('authStateChanged', async (event) => {
+        const { isAuthenticated, user } = event.detail;
+        console.log('Auth state changed in journal.js:', isAuthenticated, user);
+        
+        try {
+            if (isAuthenticated && user) {
+                await loadJournalEntries(user.uid);
+            } else {
+                resetJournalEntries();
+            }
+        } catch (error) {
+            console.error('Error handling auth state change:', error);
+        }
+    });
+
+    // Add form submit handler
+    const journalForm = document.getElementById('journal-form');
+    if (journalForm) {
+        journalForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await addJournalEntry();
+        });
+    }
+});
+
 // Helper functions
 async function loadJournalEntries(userId) {
+    console.log('Loading journal entries for user:', userId);
     try {
         const doc = await db.collection('journals').doc(userId).get();
         if (doc.exists) {
@@ -27,17 +56,6 @@ function resetJournalEntries() {
     updateJournalDisplay();
 }
 
-// Initialize journal when auth state changes
-window.addEventListener('authStateChanged', (event) => {
-    const { isAuthenticated, user } = event.detail;
-    console.log('Auth state changed in journal.js:', isAuthenticated, user);
-    if (isAuthenticated && user) {
-        loadJournalEntries(user.uid);
-    } else {
-        resetJournalEntries();
-    }
-});
-
 async function addJournalEntry() {
     const user = firebase.auth().currentUser;
     if (!user) {
@@ -45,19 +63,34 @@ async function addJournalEntry() {
         return;
     }
 
-    const form = document.getElementById('journal-form');
-    const entry = {
-        title: form.title.value,
-        content: form.content.value,
-        mood: form.mood.value,
-        date: new Date().toISOString()
-    };
-
     try {
+        const title = document.getElementById('journal-title').value.trim();
+        const content = document.getElementById('journal-content').value.trim();
+        const mood = document.getElementById('journal-mood').value;
+
+        if (!title || !content) {
+            showError('Please fill in all required fields');
+            return;
+        }
+
+        const entry = {
+            title,
+            content,
+            mood,
+            date: new Date().toISOString(),
+            userId: user.uid
+        };
+
+        // Add to local array
+        journalEntries.push(entry);
+
+        // Update Firestore
         await db.collection('journals').doc(user.uid).update({
             entries: firebase.firestore.FieldValue.arrayUnion(entry)
         });
-        journalEntries.push(entry);
+
+        // Reset form and update display
+        document.getElementById('journal-form').reset();
         updateJournalDisplay();
         showSuccess('Journal entry added successfully!');
     } catch (error) {
@@ -78,53 +111,44 @@ function updateJournalDisplay() {
     entriesContainer.innerHTML = journalEntries
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .map(entry => `
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-4">
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <h3 class="text-xl font-semibold mb-1">${entry.title}</h3>
-                        <p class="text-sm text-gray-500">${new Date(entry.date).toLocaleString()}</p>
+                        <h3 class="text-xl font-semibold">${entry.title}</h3>
+                        <p class="text-gray-500 text-sm">${new Date(entry.date).toLocaleDateString()}</p>
                     </div>
-                    <div class="flex items-center space-x-4">
-                        <span class="text-2xl" title="${entry.mood}">${getMoodEmoji(entry.mood)}</span>
-                        <button onclick="deleteJournalEntry('${entry.date}')" class="text-red-500 hover:text-red-700">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+                    <span class="text-2xl">${entry.mood}</span>
                 </div>
                 <p class="text-gray-700 whitespace-pre-wrap">${entry.content}</p>
+                <button onclick="deleteJournalEntry('${entry.date}')" 
+                        class="mt-4 text-red-600 hover:text-red-800">
+                    Delete Entry
+                </button>
             </div>
         `).join('');
 }
 
-function getMoodEmoji(mood) {
-    const moodEmojis = {
-        happy: '😊',
-        excited: '🎉',
-        neutral: '😐',
-        anxious: '😰',
-        sad: '😢'
-    };
-    return moodEmojis[mood] || '😐';
-}
-
 async function deleteJournalEntry(date) {
-    if (!confirm('Are you sure you want to delete this journal entry?')) return;
-
     const user = firebase.auth().currentUser;
     if (!user) {
-        showError('Please login to delete journal entries');
+        showError('Please login to delete entries');
         return;
     }
+
+    if (!confirm('Are you sure you want to delete this entry?')) return;
 
     try {
         const entry = journalEntries.find(e => e.date === date);
         if (!entry) return;
 
+        // Remove from local array
+        journalEntries = journalEntries.filter(e => e.date !== date);
+
+        // Update Firestore
         await db.collection('journals').doc(user.uid).update({
             entries: firebase.firestore.FieldValue.arrayRemove(entry)
         });
 
-        journalEntries = journalEntries.filter(e => e.date !== date);
         updateJournalDisplay();
         showSuccess('Journal entry deleted successfully!');
     } catch (error) {
@@ -133,59 +157,21 @@ async function deleteJournalEntry(date) {
     }
 }
 
-function exportJournal() {
-    if (!journalEntries.length) {
-        showError('No journal entries to export');
-        return;
-    }
-
-    const exportData = journalEntries
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .map(entry => `
-# ${entry.title}
-Date: ${new Date(entry.date).toLocaleString()}
-Mood: ${entry.mood}
-
-${entry.content}
--------------------
-        `.trim())
-        .join('\n\n');
-
-    const blob = new Blob([exportData], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `journal_export_${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
 function showError(message) {
     const alertDiv = document.createElement('div');
-    alertDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded';
-    alertDiv.innerHTML = message;
+    alertDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded shadow-lg z-50';
+    alertDiv.textContent = message;
     document.body.appendChild(alertDiv);
     setTimeout(() => alertDiv.remove(), 5000);
 }
 
 function showSuccess(message) {
     const alertDiv = document.createElement('div');
-    alertDiv.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded';
-    alertDiv.innerHTML = message;
+    alertDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50';
+    alertDiv.textContent = message;
     document.body.appendChild(alertDiv);
     setTimeout(() => alertDiv.remove(), 5000);
 }
 
-// Add event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    const journalForm = document.getElementById('journal-form');
-    if (journalForm) {
-        journalForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            await addJournalEntry();
-            journalForm.reset();
-        });
-    }
-});
+// Make deleteJournalEntry available globally
+window.deleteJournalEntry = deleteJournalEntry;
