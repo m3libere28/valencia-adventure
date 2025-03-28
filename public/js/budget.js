@@ -1,5 +1,5 @@
-// Get Firestore instance
-const db = firebase.firestore();
+// Get Firestore instance from shared db.js
+const db = window.db;
 
 // Budget categories with icons and colors
 const budgetCategories = {
