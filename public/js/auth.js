@@ -8,8 +8,10 @@ const firebaseConfig = {
     appId: "1:778644270783:web:83a34b7c80f176d4c8600a"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+// Initialize Firebase if not already initialized
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const auth = firebase.auth();
 
 // DOM Elements
@@ -20,11 +22,18 @@ const userPicture = document.querySelector('#user-info img');
 const userName = document.querySelector('#user-info span');
 const protectedFeatures = document.querySelectorAll('.protected-feature');
 
+// Debug logging
+console.log('Auth script loaded');
+console.log('Login button found:', !!loginBtn);
+console.log('Logout button found:', !!logoutBtn);
+
 // Login with Google
 async function login() {
+    console.log('Login function called');
     try {
         const provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
+        const result = await auth.signInWithPopup(provider);
+        console.log('Login successful:', result.user.email);
     } catch (error) {
         console.error('Login error:', error);
         showAuthError('Failed to login. Please try again.');
@@ -33,8 +42,10 @@ async function login() {
 
 // Logout
 async function logout() {
+    console.log('Logout function called');
     try {
         await auth.signOut();
+        console.log('Logout successful');
     } catch (error) {
         console.error('Logout error:', error);
         showAuthError('Failed to logout. Please try again.');
@@ -67,6 +78,7 @@ function showAuthError(message) {
 
 // Update UI based on auth state
 function updateUI(user) {
+    console.log('Updating UI for user:', user ? 'logged in' : 'logged out');
     if (user) {
         // User is signed in
         loginBtn.classList.add('hidden');
@@ -107,6 +119,19 @@ auth.onAuthStateChanged(user => {
 
 // Add event listeners
 document.addEventListener('DOMContentLoaded', () => {
-    if (loginBtn) loginBtn.addEventListener('click', login);
-    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    console.log('DOM loaded, setting up auth listeners');
+    if (loginBtn) {
+        console.log('Adding login button listener');
+        loginBtn.addEventListener('click', () => {
+            console.log('Login button clicked');
+            login();
+        });
+    }
+    if (logoutBtn) {
+        console.log('Adding logout button listener');
+        logoutBtn.addEventListener('click', () => {
+            console.log('Logout button clicked');
+            logout();
+        });
+    }
 });
