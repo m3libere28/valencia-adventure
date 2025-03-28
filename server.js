@@ -95,18 +95,19 @@ updateWeather(); // Initial update
 // Routes
 app.get('/api/weather', async (req, res) => {
     try {
-        const weather = await Weather.findOne().sort({ timestamp: -1 });
-        if (!weather) {
-            // If no weather data exists, fetch it now
+        let weather = await Weather.findOne().sort({ timestamp: -1 });
+        
+        // If no weather data exists or data is older than 1 hour, fetch new data
+        if (!weather || (new Date() - new Date(weather.timestamp)) > 3600000) {
             await updateWeather();
-            const newWeather = await Weather.findOne().sort({ timestamp: -1 });
-            if (!newWeather) {
-                throw new Error('Could not fetch weather data');
-            }
-            res.json(newWeather);
-        } else {
-            res.json(weather);
+            weather = await Weather.findOne().sort({ timestamp: -1 });
         }
+        
+        if (!weather) {
+            return res.status(500).json({ error: 'Unable to fetch weather data' });
+        }
+        
+        res.json(weather);
     } catch (error) {
         console.error('Error fetching weather:', error);
         res.status(500).json({ error: 'Error fetching weather data' });
