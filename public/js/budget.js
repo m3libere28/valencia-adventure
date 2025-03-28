@@ -14,6 +14,8 @@ const budgetCategories = {
 
 // Budget management
 let budgetData = null;
+let doughnutChart = null;
+let lineChart = null;
 let categoryChart = null; // Store chart instance
 
 async function initializeBudget() {

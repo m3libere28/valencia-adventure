@@ -72,16 +72,16 @@ const schoolsData = {
             type: "Public",
             rating: 4.5,
             ageRange: "3-12",
-            location: [39.4697, -0.3774],
-            address: "C/ Guillem de Castro, 153, Valencia",
+            location: [39.4699, -0.3763],
+            address: "Carrer de Guillem de Castro, 153, 46008 València",
             curriculum: "Spanish National Curriculum",
-            languages: ["Spanish", "Valencian", "English"],
+            languages: ["Spanish", "Valencian"],
             facilities: ["Playground", "Library", "Computer Lab"],
-            extracurricular: ["Sports", "Music", "Language Support"],
+            extracurricular: ["Sports", "Music", "Art"],
             tuitionRange: "Free",
-            website: "http://ceip-cervantes-valencia.edu.gva.es",
+            website: "http://mestreacasa.gva.es/web/ceipcervantes",
             goodFor7: true,
-            notes: "Strong bilingual program and supportive learning environment"
+            notes: "Historic school with strong community involvement"
         },
         {
             name: "CEIP Luis Vives",
@@ -255,39 +255,43 @@ const schoolsData = {
 // Initialize map
 let map;
 let markers = [];
+let markerLayer;
 
+// Initialize map
 function initMap() {
-    // Center on Valencia
+    // Create map centered on Valencia
     map = L.map('schools-map').setView([39.4699, -0.3763], 12);
 
-    // Add OpenStreetMap tiles
+    // Add tile layer
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: ' OpenStreetMap contributors'
     }).addTo(map);
 
-    // Add markers for schools suitable for 7-year-olds
-    [...schoolsData.international, ...schoolsData.public]
-        .filter(school => school.goodFor7)
-        .forEach(school => {
+    // Create marker layer group
+    markerLayer = L.layerGroup().addTo(map);
+
+    // Add markers for all schools
+    [...schoolsData.international, ...schoolsData.public].forEach(school => {
+        if (school.location) {
             const marker = L.marker(school.location)
                 .bindPopup(`
                     <div class="p-4">
                         <h3 class="font-bold text-lg mb-2">${school.name}</h3>
-                        <p class="text-sm mb-2">Rating: ${'★'.repeat(Math.floor(school.rating))}${school.rating % 1 >= 0.5 ? '½' : ''} (${school.rating})</p>
-                        <p class="text-sm mb-2">${school.address}</p>
+                        <p class="text-sm mb-2">${school.type} School</p>
                         <p class="text-sm mb-2">Ages: ${school.ageRange}</p>
-                        <p class="text-sm mb-2">Tuition: ${school.tuitionRange}</p>
-                        <p class="text-sm mb-2">Languages: ${school.languages.join(', ')}</p>
-                        <p class="text-sm mb-2 text-gray-600">${school.notes}</p>
-                        ${school.website ? `<a href="${school.website}" target="_blank" class="text-blue-500 hover:text-blue-700 text-sm">Visit Website</a>` : ''}
+                        <p class="text-sm">${school.address}</p>
+                        <a href="${school.website}" target="_blank" class="text-blue-500 hover:text-blue-700 text-sm">Visit Website</a>
                     </div>
-                `, {
-                    maxWidth: 300,
-                    className: 'school-popup'
-                })
-                .addTo(map);
+                `);
             markers.push(marker);
-        });
+            markerLayer.addLayer(marker);
+        }
+    });
+
+    // Add event listener for map clicks
+    map.on('click', function(e) {
+        console.log('Map clicked at:', e.latlng);
+    });
 }
 
 // Generate school cards
@@ -295,18 +299,17 @@ function generateSchoolCards() {
     const internationalContainer = document.getElementById('international-schools');
     const publicContainer = document.getElementById('public-schools');
 
-    // Clear existing cards
-    internationalContainer.innerHTML = '';
-    publicContainer.innerHTML = '';
+    if (internationalContainer) {
+        schoolsData.international.forEach(school => {
+            internationalContainer.appendChild(createSchoolCard(school));
+        });
+    }
 
-    // Generate cards for each school type
-    schoolsData.international.forEach(school => {
-        internationalContainer.appendChild(createSchoolCard(school));
-    });
-
-    schoolsData.public.forEach(school => {
-        publicContainer.appendChild(createSchoolCard(school));
-    });
+    if (publicContainer) {
+        schoolsData.public.forEach(school => {
+            publicContainer.appendChild(createSchoolCard(school));
+        });
+    }
 }
 
 // Create a school card
@@ -315,28 +318,50 @@ function createSchoolCard(school) {
     card.className = 'bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300';
     card.innerHTML = `
         <div class="flex justify-between items-start mb-4">
-            <h3 class="text-xl font-semibold">${school.name}</h3>
-            <span class="text-sm font-medium px-3 py-1 rounded-full ${
-                school.type === 'International' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-            }">${school.type}</span>
-        </div>
-        <div class="space-y-2">
-            <p class="text-yellow-500">${'★'.repeat(Math.floor(school.rating))}${school.rating % 1 >= 0.5 ? '½' : ''} <span class="text-gray-600">(${school.rating})</span></p>
-            <p class="text-gray-600">Ages: ${school.ageRange}</p>
-            <p class="text-gray-600">Languages: ${school.languages.join(', ')}</p>
-            <p class="text-gray-600">Tuition: ${school.tuitionRange}</p>
-            <p class="text-sm text-gray-500 mt-2">${school.notes}</p>
-            ${school.goodFor7 ? '<p class="text-green-600 font-medium mt-2"><i class="fas fa-check-circle"></i> Recommended for 7-year-olds</p>' : ''}
-        </div>
-        <div class="mt-4 flex justify-between items-center">
+            <div>
+                <h3 class="text-xl font-semibold mb-2">${school.name}</h3>
+                <div class="flex items-center mb-2">
+                    <span class="text-yellow-500">${'★'.repeat(Math.floor(school.rating))}${school.rating % 1 >= 0.5 ? '½' : ''}</span>
+                    <span class="text-gray-600 ml-2">${school.rating}</span>
+                </div>
+                <p class="text-gray-600">Ages: ${school.ageRange}</p>
+            </div>
             <button onclick="showSchoolOnMap([${school.location}])" class="text-blue-500 hover:text-blue-700">
-                <i class="fas fa-map-marker-alt mr-1"></i>View on Map
+                <i class="fas fa-map-marker-alt"></i>
             </button>
-            ${school.website ? `
-                <a href="${school.website}" target="_blank" class="text-blue-500 hover:text-blue-700">
-                    <i class="fas fa-external-link-alt mr-1"></i>Website
-                </a>
-            ` : ''}
+        </div>
+        
+        <div class="space-y-2 text-sm text-gray-600">
+            <p><i class="fas fa-graduation-cap mr-2"></i>${school.curriculum}</p>
+            <p><i class="fas fa-language mr-2"></i>${school.languages.join(', ')}</p>
+            <p><i class="fas fa-euro-sign mr-2"></i>${school.tuitionRange}</p>
+        </div>
+        
+        <div class="mt-4">
+            <div class="flex flex-wrap gap-2 mb-2">
+                ${school.facilities.map(facility => `
+                    <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                        ${facility}
+                    </span>
+                `).join('')}
+            </div>
+            <div class="flex flex-wrap gap-2">
+                ${school.extracurricular.map(activity => `
+                    <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">
+                        ${activity}
+                    </span>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div class="mt-4 text-sm text-gray-600">
+            <p><i class="fas fa-info-circle mr-2"></i>${school.notes}</p>
+        </div>
+        
+        <div class="mt-4">
+            <a href="${school.website}" target="_blank" class="text-blue-500 hover:text-blue-700">
+                <i class="fas fa-external-link-alt mr-2"></i>Visit Website
+            </a>
         </div>
     `;
     return card;
@@ -344,12 +369,13 @@ function createSchoolCard(school) {
 
 // Show school on map
 function showSchoolOnMap(location) {
+    if (!location || !map) return;
     map.setView(location, 15);
-    markers.forEach(marker => {
-        if (marker.getLatLng().lat === location[0] && marker.getLatLng().lng === location[1]) {
-            marker.openPopup();
-        }
-    });
+    const marker = markers.find(m => 
+        m.getLatLng().lat === location[0] && 
+        m.getLatLng().lng === location[1]
+    );
+    if (marker) marker.openPopup();
 }
 
 // Initialize when document is loaded
