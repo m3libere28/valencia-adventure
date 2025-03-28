@@ -26,8 +26,10 @@ let lineChart = null;
 let categoryChart = null;
 
 // Initialize budget when auth state changes
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
+window.addEventListener('authStateChanged', (event) => {
+    const { isAuthenticated, user } = event.detail;
+    console.log('Auth state changed in budget.js:', isAuthenticated, user);
+    if (isAuthenticated && user) {
         loadBudgetData(user.uid);
     } else {
         resetBudgetData();
@@ -35,13 +37,16 @@ firebase.auth().onAuthStateChanged((user) => {
 });
 
 async function loadBudgetData(userId) {
+    console.log('Loading budget data for user:', userId);
     try {
         const doc = await db.collection('budgets').doc(userId).get();
         if (doc.exists) {
             budgetData = doc.data();
+            console.log('Loaded budget data:', budgetData);
         } else {
             // Create new budget document for user
             await db.collection('budgets').doc(userId).set(budgetData);
+            console.log('Created new budget document');
         }
         updateBudgetDisplay();
     } catch (error) {
@@ -61,28 +66,32 @@ function resetBudgetData() {
 
 async function addExpense(event) {
     event.preventDefault();
-    
     const user = firebase.auth().currentUser;
     if (!user) {
         showError('Please login to add expenses');
         return;
     }
 
-    const form = event.target;
-    const expense = {
-        description: form.description.value,
-        amount: parseFloat(form.amount.value),
-        category: form.category.value,
-        date: new Date().toISOString()
-    };
-
     try {
+        const amount = parseFloat(document.getElementById('expense-amount').value);
+        const category = document.getElementById('expense-category').value;
+        const description = document.getElementById('expense-description').value;
+        const date = new Date().toISOString();
+
+        if (!amount || !category) {
+            showError('Please fill in all required fields');
+            return;
+        }
+
+        const expense = { amount, category, description, date };
+        budgetData.expenses.push(expense);
+
         await db.collection('budgets').doc(user.uid).update({
             expenses: firebase.firestore.FieldValue.arrayUnion(expense)
         });
-        budgetData.expenses.push(expense);
+
+        document.getElementById('expense-form').reset();
         updateBudgetDisplay();
-        form.reset();
         showSuccess('Expense added successfully!');
     } catch (error) {
         console.error('Error adding expense:', error);
@@ -92,27 +101,26 @@ async function addExpense(event) {
 
 async function handleSetBudget(event) {
     event.preventDefault();
-    
     const user = firebase.auth().currentUser;
     if (!user) {
         showError('Please login to set budget');
         return;
     }
 
-    const form = event.target;
-    const amount = parseFloat(form.amount.value);
-    if (isNaN(amount) || amount < 0) {
-        showError('Please enter a valid amount');
-        return;
-    }
-
     try {
+        const amount = parseFloat(document.getElementById('total-budget').value);
+        if (!amount || amount <= 0) {
+            showError('Please enter a valid budget amount');
+            return;
+        }
+
+        budgetData.totalBudget = amount;
         await db.collection('budgets').doc(user.uid).update({
             totalBudget: amount
         });
-        budgetData.totalBudget = amount;
+
+        document.getElementById('budget-form').reset();
         updateBudgetDisplay();
-        form.reset();
         showSuccess('Budget updated successfully!');
     } catch (error) {
         console.error('Error setting budget:', error);
@@ -122,26 +130,26 @@ async function handleSetBudget(event) {
 
 function updateBudgetDisplay() {
     updateBudgetSummary();
-    updateCategorySpending();
     updateExpensesList();
+    updateCategorySpending();
     updateCharts();
 }
 
 function updateBudgetSummary() {
-    const totalBudgetElement = document.getElementById('total-budget');
-    const totalSpentElement = document.getElementById('total-spent');
-    const remainingBudgetElement = document.getElementById('remaining-budget');
+    const totalBudgetDisplay = document.getElementById('total-budget-display');
+    const totalExpensesDisplay = document.getElementById('total-expenses');
+    const remainingBudgetDisplay = document.getElementById('remaining-budget');
 
-    const totalSpent = budgetData.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-    const remaining = budgetData.totalBudget - totalSpent;
+    const totalExpenses = budgetData.expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const remainingBudget = budgetData.totalBudget - totalExpenses;
 
-    if (totalBudgetElement) totalBudgetElement.textContent = formatCurrency(budgetData.totalBudget);
-    if (totalSpentElement) totalSpentElement.textContent = formatCurrency(totalSpent);
-    if (remainingBudgetElement) remainingBudgetElement.textContent = formatCurrency(remaining);
+    if (totalBudgetDisplay) totalBudgetDisplay.textContent = formatCurrency(budgetData.totalBudget);
+    if (totalExpensesDisplay) totalExpensesDisplay.textContent = formatCurrency(totalExpenses);
+    if (remainingBudgetDisplay) remainingBudgetDisplay.textContent = formatCurrency(remainingBudget);
 }
 
 function formatCurrency(amount) {
-    return new Intl.NumberFormat('es-ES', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'EUR'
     }).format(amount);
@@ -166,13 +174,20 @@ function showSuccess(message) {
 // Add event listeners
 document.addEventListener('DOMContentLoaded', () => {
     const expenseForm = document.getElementById('expense-form');
-    if (expenseForm) {
-        expenseForm.addEventListener('submit', addExpense);
-    }
-
     const budgetForm = document.getElementById('budget-form');
+    
+    if (expenseForm) {
+        expenseForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            addExpense(e);
+        });
+    }
+    
     if (budgetForm) {
-        budgetForm.addEventListener('submit', handleSetBudget);
+        budgetForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            handleSetBudget(e);
+        });
     }
 });
 

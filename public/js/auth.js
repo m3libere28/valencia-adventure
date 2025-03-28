@@ -61,12 +61,14 @@ function showSuccess(message) {
 
 // Update UI based on auth state
 function updateUI(user) {
-    console.log('Updating UI for user:', user ? 'logged in' : 'logged out');
+    console.log('Updating UI for user:', user ? user.email : 'logged out');
     
     const loginPrompt = document.getElementById('login-prompt');
     const budgetSection = document.getElementById('budget-section');
     const journalForm = document.getElementById('journal-form');
     const journalEntries = document.getElementById('journal-entries');
+    const expenseForm = document.getElementById('expense-form');
+    const budgetForm = document.getElementById('budget-form');
 
     if (user) {
         // User is signed in
@@ -77,6 +79,8 @@ function updateUI(user) {
         if (journalForm) journalForm.classList.remove('hidden');
         if (journalEntries) journalEntries.classList.remove('hidden');
         if (budgetSection) budgetSection.classList.remove('hidden');
+        if (expenseForm) expenseForm.classList.remove('hidden');
+        if (budgetForm) budgetForm.classList.remove('hidden');
 
         if (userPicture && user.photoURL) {
             userPicture.src = user.photoURL;
@@ -95,42 +99,34 @@ function updateUI(user) {
         if (journalForm) journalForm.classList.add('hidden');
         if (journalEntries) journalEntries.classList.add('hidden');
         if (budgetSection) budgetSection.classList.add('hidden');
+        if (expenseForm) expenseForm.classList.add('hidden');
+        if (budgetForm) budgetForm.classList.add('hidden');
 
         if (userPicture) userPicture.classList.add('hidden');
         if (userName) userName.textContent = '';
         protectedFeatures.forEach(el => el.classList.add('hidden'));
     }
-}
 
-// Listen for auth state changes
-auth.onAuthStateChanged(user => {
-    console.log('Auth state changed:', user ? 'logged in' : 'logged out');
-    updateUI(user);
-    
     // Dispatch event for other components
     window.dispatchEvent(new CustomEvent('authStateChanged', {
         detail: { 
             isAuthenticated: !!user,
-            user 
+            user: user ? {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL
+            } : null
         }
     }));
+}
+
+// Listen for auth state changes
+auth.onAuthStateChanged(user => {
+    console.log('Auth state changed:', user ? user.email : 'logged out');
+    updateUI(user);
 });
 
 // Add event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, setting up auth listeners');
-    if (loginBtn) {
-        console.log('Adding login button listener');
-        loginBtn.addEventListener('click', () => {
-            console.log('Login button clicked');
-            login();
-        });
-    }
-    if (logoutBtn) {
-        console.log('Adding logout button listener');
-        logoutBtn.addEventListener('click', () => {
-            console.log('Logout button clicked');
-            logout();
-        });
-    }
-});
+if (loginBtn) loginBtn.addEventListener('click', login);
+if (logoutBtn) logoutBtn.addEventListener('click', logout);
