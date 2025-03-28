@@ -14,7 +14,7 @@ app = Flask(__name__, static_folder='public', static_url_path='')
 CORS(app, resources={
     r"/api/*": {
         "origins": [
-            "http://localhost:3000",
+            "http://localhost:8000",
             "https://personal-website-taupe-pi-67.vercel.app"
         ],
         "methods": ["GET", "POST", "OPTIONS"],
@@ -99,7 +99,7 @@ def get_entries():
 
 # For local development
 if __name__ == '__main__':
-    app.run(port=3000)
+    app.run(port=8000)
 else:
     # For Vercel
     app = app
