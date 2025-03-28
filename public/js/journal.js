@@ -20,49 +20,52 @@ document.addEventListener('DOMContentLoaded', () => {
     if (journalForm) {
         journalForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            await addJournalEntry();
+            
+            const titleInput = document.getElementById('journal-title');
+            const contentInput = document.getElementById('journal-content');
+            const moodInput = document.getElementById('journal-mood');
+            
+            const title = titleInput ? titleInput.value : '';
+            const content = contentInput ? contentInput.value : '';
+            const mood = moodInput ? moodInput.value : '';
+            
+            if (!title || !content || !mood) {
+                showError('Please fill in all fields');
+                return;
+            }
+            
+            await addJournalEntry(title, content, mood);
+            
+            // Reset form
+            if (titleInput) titleInput.value = '';
+            if (contentInput) contentInput.value = '';
+            if (moodInput) moodInput.value = '';
         });
     }
 });
 
 // Helper functions
 async function loadJournalEntries(userId) {
-    console.log('Loading journal entries for user:', userId);
     try {
         const doc = await window.db.collection('journals').doc(userId).get();
         if (doc.exists) {
             journalEntries = doc.data().entries || [];
         } else {
-            // Create new journal document for user
             await window.db.collection('journals').doc(userId).set({ entries: [] });
             journalEntries = [];
         }
         updateJournalDisplay();
     } catch (error) {
         console.error('Error loading journal entries:', error);
-        showError('Failed to load journal entries. Please try again.');
+        showError('Failed to load journal entries');
     }
 }
 
-function resetJournalEntries() {
-    journalEntries = [];
-    updateJournalDisplay();
-}
-
-async function addJournalEntry() {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        showError('Please login to add journal entries');
-        return;
-    }
-
+async function addJournalEntry(title, content, mood) {
     try {
-        const title = document.getElementById('journal-title').value.trim();
-        const content = document.getElementById('journal-content').value.trim();
-        const mood = document.getElementById('journal-mood').value;
-
-        if (!title || !content) {
-            showError('Please fill in all required fields');
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showError('Please login to add journal entries');
             return;
         }
 
@@ -82,55 +85,55 @@ async function addJournalEntry() {
             entries: firebase.firestore.FieldValue.arrayUnion(entry)
         });
 
-        // Reset form and update display
-        document.getElementById('journal-form').reset();
+        // Update display
         updateJournalDisplay();
-        showSuccess('Journal entry added successfully!');
+        showSuccess('Journal entry added successfully');
     } catch (error) {
         console.error('Error adding journal entry:', error);
-        showError('Failed to add journal entry. Please try again.');
+        showError('Failed to add journal entry');
     }
 }
 
 function updateJournalDisplay() {
-    const entriesContainer = document.getElementById('journal-entries');
-    if (!entriesContainer) return;
+    const entriesDiv = document.getElementById('journal-entries');
+    if (!entriesDiv) return;
 
-    if (!journalEntries.length) {
-        entriesContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No journal entries yet</p>';
+    if (journalEntries.length === 0) {
+        entriesDiv.innerHTML = '<p class="text-gray-500">No journal entries yet</p>';
         return;
     }
 
-    entriesContainer.innerHTML = journalEntries
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .map(entry => `
-            <div class="bg-white rounded-lg shadow-md p-6 mb-4">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="text-xl font-semibold">${entry.title}</h3>
-                        <p class="text-gray-500 text-sm">${new Date(entry.date).toLocaleDateString()}</p>
-                    </div>
-                    <span class="text-2xl">${entry.mood}</span>
-                </div>
-                <p class="text-gray-700 whitespace-pre-wrap">${entry.content}</p>
+    // Sort entries by date, newest first
+    const sortedEntries = [...journalEntries].sort((a, b) => 
+        new Date(b.date) - new Date(a.date)
+    );
+
+    entriesDiv.innerHTML = sortedEntries.map(entry => `
+        <div class="bg-white shadow rounded-lg p-6 mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold">${entry.title}</h3>
                 <button onclick="deleteJournalEntry('${entry.date}')" 
-                        class="mt-4 text-red-600 hover:text-red-800">
-                    Delete Entry
+                        class="text-red-500 hover:text-red-700">
+                    <i class="fas fa-trash"></i>
                 </button>
             </div>
-        `).join('');
+            <p class="text-gray-600 mb-2">${entry.content}</p>
+            <div class="flex justify-between items-center text-sm text-gray-500">
+                <span>Mood: ${entry.mood}</span>
+                <span>${new Date(entry.date).toLocaleDateString()}</span>
+            </div>
+        </div>
+    `).join('');
 }
 
 async function deleteJournalEntry(date) {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        showError('Please login to delete entries');
-        return;
-    }
-
-    if (!confirm('Are you sure you want to delete this entry?')) return;
-
     try {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showError('Please login to delete journal entries');
+            return;
+        }
+
         const entry = journalEntries.find(e => e.date === date);
         if (!entry) return;
 
@@ -142,29 +145,33 @@ async function deleteJournalEntry(date) {
             entries: firebase.firestore.FieldValue.arrayRemove(entry)
         });
 
+        // Update display
         updateJournalDisplay();
-        showSuccess('Journal entry deleted successfully!');
+        showSuccess('Journal entry deleted successfully');
     } catch (error) {
         console.error('Error deleting journal entry:', error);
-        showError('Failed to delete journal entry. Please try again.');
+        showError('Failed to delete journal entry');
     }
 }
 
+function resetJournalEntries() {
+    journalEntries = [];
+    updateJournalDisplay();
+}
+
+// UI feedback functions
 function showError(message) {
     const alertDiv = document.createElement('div');
-    alertDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded shadow-lg z-50';
-    alertDiv.textContent = message;
+    alertDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded';
+    alertDiv.innerHTML = message;
     document.body.appendChild(alertDiv);
     setTimeout(() => alertDiv.remove(), 5000);
 }
 
 function showSuccess(message) {
     const alertDiv = document.createElement('div');
-    alertDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded shadow-lg z-50';
-    alertDiv.textContent = message;
+    alertDiv.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded';
+    alertDiv.innerHTML = message;
     document.body.appendChild(alertDiv);
     setTimeout(() => alertDiv.remove(), 5000);
 }
-
-// Make deleteJournalEntry available globally
-window.deleteJournalEntry = deleteJournalEntry;

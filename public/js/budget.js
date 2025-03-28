@@ -36,14 +36,55 @@ document.addEventListener('DOMContentLoaded', () => {
     if (budgetForm) {
         budgetForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            await handleSetBudget();
+            
+            const amountInput = document.getElementById('budget-amount');
+            const amount = amountInput ? parseFloat(amountInput.value) : 0;
+            
+            if (!amount || amount <= 0) {
+                showError('Please enter a valid budget amount');
+                return;
+            }
+            
+            await setBudget(amount);
+            
+            // Reset form
+            if (amountInput) amountInput.value = '';
         });
     }
 
     if (expenseForm) {
         expenseForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            await addExpense();
+            
+            const amountInput = document.getElementById('expense-amount');
+            const categoryInput = document.getElementById('expense-category');
+            const descriptionInput = document.getElementById('expense-description');
+            
+            const amount = amountInput ? parseFloat(amountInput.value) : 0;
+            const category = categoryInput ? categoryInput.value : '';
+            const description = descriptionInput ? descriptionInput.value : '';
+            
+            if (!amount || amount <= 0) {
+                showError('Please enter a valid expense amount');
+                return;
+            }
+            
+            if (!category) {
+                showError('Please select a category');
+                return;
+            }
+            
+            if (!description) {
+                showError('Please enter a description');
+                return;
+            }
+            
+            await addExpense(amount, category, description);
+            
+            // Reset form
+            if (amountInput) amountInput.value = '';
+            if (categoryInput) categoryInput.value = '';
+            if (descriptionInput) descriptionInput.value = '';
         });
     }
 });
@@ -57,7 +98,6 @@ async function loadBudgetData(userId) {
             currentBudget = data.budget || 0;
             expenses = data.expenses || [];
         } else {
-            // Create new budget document for user
             await window.db.collection('budgets').doc(userId).set({
                 budget: 0,
                 expenses: []
@@ -69,7 +109,150 @@ async function loadBudgetData(userId) {
         updateExpensesDisplay();
     } catch (error) {
         console.error('Error loading budget data:', error);
-        showError('Failed to load budget data. Please try again.');
+        showError('Failed to load budget data');
+    }
+}
+
+async function setBudget(amount) {
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showError('Please login to set budget');
+            return;
+        }
+
+        currentBudget = amount;
+        await window.db.collection('budgets').doc(user.uid).update({
+            budget: amount
+        });
+
+        updateBudgetDisplay();
+        showSuccess('Budget updated successfully');
+    } catch (error) {
+        console.error('Error setting budget:', error);
+        showError('Failed to update budget');
+    }
+}
+
+async function addExpense(amount, category, description) {
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showError('Please login to add expenses');
+            return;
+        }
+
+        const expense = {
+            amount,
+            category,
+            description,
+            date: new Date().toISOString()
+        };
+
+        expenses.push(expense);
+        await window.db.collection('budgets').doc(user.uid).update({
+            expenses: firebase.firestore.FieldValue.arrayUnion(expense)
+        });
+
+        updateExpensesDisplay();
+        showSuccess('Expense added successfully');
+    } catch (error) {
+        console.error('Error adding expense:', error);
+        showError('Failed to add expense');
+    }
+}
+
+function updateBudgetDisplay() {
+    const budgetDisplay = document.getElementById('budget-display');
+    const remainingDisplay = document.getElementById('remaining-display');
+    const spentDisplay = document.getElementById('spent-display');
+
+    if (!budgetDisplay || !remainingDisplay || !spentDisplay) return;
+
+    const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const remaining = currentBudget - totalSpent;
+
+    budgetDisplay.textContent = formatCurrency(currentBudget);
+    spentDisplay.textContent = formatCurrency(totalSpent);
+    remainingDisplay.textContent = formatCurrency(remaining);
+
+    // Update progress bar
+    const progressBar = document.getElementById('budget-progress');
+    if (progressBar && currentBudget > 0) {
+        const percentage = Math.min((totalSpent / currentBudget) * 100, 100);
+        progressBar.style.width = `${percentage}%`;
+        progressBar.className = `h-full rounded-full transition-all duration-500 ${
+            percentage > 90 ? 'bg-red-500' :
+            percentage > 70 ? 'bg-yellow-500' :
+            'bg-green-500'
+        }`;
+    }
+}
+
+function updateExpensesDisplay() {
+    const expensesDiv = document.getElementById('expenses-list');
+    if (!expensesDiv) return;
+
+    if (expenses.length === 0) {
+        expensesDiv.innerHTML = '<p class="text-gray-500">No expenses recorded</p>';
+        return;
+    }
+
+    // Sort expenses by date, newest first
+    const sortedExpenses = [...expenses].sort((a, b) => 
+        new Date(b.date) - new Date(a.date)
+    );
+
+    expensesDiv.innerHTML = sortedExpenses.map(expense => `
+        <div class="bg-white shadow rounded-lg p-4 mb-3">
+            <div class="flex justify-between items-center">
+                <div>
+                    <div class="flex items-center">
+                        <span class="text-2xl mr-2">${budgetCategories[expense.category].icon}</span>
+                        <div>
+                            <h4 class="font-semibold">${expense.description}</h4>
+                            <p class="text-sm text-gray-500">${expense.category}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-semibold">${formatCurrency(expense.amount)}</p>
+                    <p class="text-sm text-gray-500">${new Date(expense.date).toLocaleDateString()}</p>
+                </div>
+            </div>
+            <button onclick="deleteExpense('${expense.date}')" 
+                    class="mt-2 text-red-500 hover:text-red-700 text-sm">
+                Delete
+            </button>
+        </div>
+    `).join('');
+
+    // Update charts if they exist
+    updateCharts();
+}
+
+async function deleteExpense(date) {
+    try {
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            showError('Please login to delete expenses');
+            return;
+        }
+
+        const expense = expenses.find(e => e.date === date);
+        if (!expense) return;
+
+        expenses = expenses.filter(e => e.date !== date);
+        await window.db.collection('budgets').doc(user.uid).update({
+            expenses: firebase.firestore.FieldValue.arrayRemove(expense)
+        });
+
+        updateExpensesDisplay();
+        updateBudgetDisplay();
+        showSuccess('Expense deleted successfully');
+    } catch (error) {
+        console.error('Error deleting expense:', error);
+        showError('Failed to delete expense');
     }
 }
 
@@ -80,89 +263,7 @@ function resetBudgetData() {
     updateExpensesDisplay();
 }
 
-async function addExpense() {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        showError('Please login to add expenses');
-        return;
-    }
-
-    try {
-        const amount = parseFloat(document.getElementById('expense-amount').value);
-        const category = document.getElementById('expense-category').value;
-        const description = document.getElementById('expense-description').value;
-        const date = new Date().toISOString();
-
-        if (!amount || !category) {
-            showError('Please fill in all required fields');
-            return;
-        }
-
-        const expense = { amount, category, description, date };
-        expenses.push(expense);
-
-        await window.db.collection('budgets').doc(user.uid).update({
-            expenses: firebase.firestore.FieldValue.arrayUnion(expense)
-        });
-
-        document.getElementById('expense-form').reset();
-        updateBudgetDisplay();
-        updateExpensesDisplay();
-        showSuccess('Expense added successfully!');
-    } catch (error) {
-        console.error('Error adding expense:', error);
-        showError('Failed to add expense. Please try again.');
-    }
-}
-
-async function handleSetBudget() {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        showError('Please login to set budget');
-        return;
-    }
-
-    try {
-        const amount = parseFloat(document.getElementById('total-budget').value);
-        if (!amount || amount <= 0) {
-            showError('Please enter a valid budget amount');
-            return;
-        }
-
-        currentBudget = amount;
-        await window.db.collection('budgets').doc(user.uid).update({
-            budget: amount
-        });
-
-        document.getElementById('budget-form').reset();
-        updateBudgetDisplay();
-        showSuccess('Budget updated successfully!');
-    } catch (error) {
-        console.error('Error setting budget:', error);
-        showError('Failed to set budget. Please try again.');
-    }
-}
-
-function updateBudgetDisplay() {
-    const totalBudgetDisplay = document.getElementById('total-budget-display');
-    const totalExpensesDisplay = document.getElementById('total-expenses');
-    const remainingBudgetDisplay = document.getElementById('remaining-budget');
-
-    const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
-    const remainingBudget = currentBudget - totalExpenses;
-
-    if (totalBudgetDisplay) totalBudgetDisplay.textContent = formatCurrency(currentBudget);
-    if (totalExpensesDisplay) totalExpensesDisplay.textContent = formatCurrency(totalExpenses);
-    if (remainingBudgetDisplay) remainingBudgetDisplay.textContent = formatCurrency(remainingBudget);
-}
-
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'EUR'
-    }).format(amount);
-}
-
+// UI feedback functions
 function showError(message) {
     const alertDiv = document.createElement('div');
     alertDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded';
@@ -179,62 +280,13 @@ function showSuccess(message) {
     setTimeout(() => alertDiv.remove(), 5000);
 }
 
-function updateExpensesDisplay() {
-    const expenseList = document.getElementById('expense-list');
-    if (!expenseList) return;
-
-    if (!expenses.length) {
-        expenseList.innerHTML = '<p class="text-gray-500 text-center py-4">No expenses yet</p>';
-        return;
-    }
-
-    expenseList.innerHTML = expenses
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .map(expense => `
-            <div class="flex justify-between items-center py-4 border-b last:border-0">
-                <div>
-                    <p class="font-medium">${expense.description}</p>
-                    <p class="text-sm text-gray-500">
-                        <span class="inline-flex items-center">
-                            <i class="fas ${budgetCategories[expense.category].icon} mr-2" style="color: ${budgetCategories[expense.category].color}"></i>
-                            ${budgetCategories[expense.category].name}
-                        </span>
-                        • ${new Date(expense.date).toLocaleDateString()}
-                    </p>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span class="font-medium">${formatCurrency(expense.amount)}</span>
-                    <button onclick="deleteExpense('${expense.date}')" class="text-red-500 hover:text-red-700">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        `).join('');
+// Helper function to format currency
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(amount);
 }
 
-async function deleteExpense(date) {
-    if (!confirm('Are you sure you want to delete this expense?')) return;
-
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        showError('Please login to delete expenses');
-        return;
-    }
-
-    try {
-        const expense = expenses.find(e => e.date === date);
-        if (!expense) return;
-
-        await window.db.collection('budgets').doc(user.uid).update({
-            expenses: firebase.firestore.FieldValue.arrayRemove(expense)
-        });
-
-        expenses = expenses.filter(e => e.date !== date);
-        updateBudgetDisplay();
-        updateExpensesDisplay();
-        showSuccess('Expense deleted successfully!');
-    } catch (error) {
-        console.error('Error deleting expense:', error);
-        showError('Failed to delete expense. Please try again.');
-    }
-}
+// Make delete function available globally
+window.deleteExpense = deleteExpense;
