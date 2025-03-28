@@ -1,17 +1,4 @@
-// Firebase configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyAzA0ldOdmvjXFrXYtQtt1q49VC41STcqY",
-    authDomain: "valencia-adventure.firebaseapp.com",
-    projectId: "valencia-adventure",
-    storageBucket: "valencia-adventure.appspot.com",
-    messagingSenderId: "778644270783",
-    appId: "1:778644270783:web:83a34b7c80f176d4c8600a"
-};
-
-// Initialize Firebase if not already initialized
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+// Get Firebase Auth instance
 const auth = firebase.auth();
 
 // DOM Elements
