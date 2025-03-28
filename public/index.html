@@ -16,11 +16,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    
+    <!-- App Scripts -->
     <script src="./js/schools.js" defer></script>
     <script src="./js/budget.js" defer></script>
     <script src="./js/journal.js" defer></script>
     <script src="./js/apartments.js" defer></script>
     <script src="./js/housing.js" defer></script>
+    <script src="./js/currency.js" defer></script>
     
     <!-- Auth0 SDK -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
@@ -448,15 +451,15 @@
                     </a>
                 </div>
                 <div class="hidden md:flex space-x-6">
-                    <a href="#home" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Home</a>
-                    <a href="#housing" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Housing</a>
-                    <a href="#timeline" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Timeline</a>
-                    <a href="#weather" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Weather</a>
-                    <a href="#schools" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Schools</a>
-                    <a href="#budget" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Budget</a>
-                    <a href="#todo" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Todo</a>
-                    <a href="#more" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">More</a>
-                    <a href="#journal" class="nav-link text-gray-600 hover:text-blue-600 transition-colors">Journal</a>
+                    <a href="#introduction" class="nav-link text-gray-600 hover:text-blue-600">Introduction</a>
+                    <a href="#housing" class="nav-link text-gray-600 hover:text-blue-600">Housing</a>
+                    <a href="#timeline" class="nav-link text-gray-600 hover:text-blue-600">Timeline</a>
+                    <a href="#schools" class="nav-link text-gray-600 hover:text-blue-600">Schools</a>
+                    <a href="#weather" class="nav-link text-gray-600 hover:text-blue-600">Weather</a>
+                    <a href="#budget" class="nav-link text-gray-600 hover:text-blue-600">Budget</a>
+                    <a href="#currency" class="nav-link text-gray-600 hover:text-blue-600">Currency</a>
+                    <a href="#journal" class="nav-link text-gray-600 hover:text-blue-600">Journal</a>
+                    <a href="#about" class="nav-link text-gray-600 hover:text-blue-600">About</a>
                 </div>
                 <div class="md:hidden">
                     <button id="menu-toggle" class="text-gray-600 hover:text-blue-600">
@@ -464,11 +467,9 @@
                     </button>
                 </div>
                 <div class="flex items-center">
-                    <button id="loginBtn" onclick="login()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Login
-                    </button>
+                    <button id="login-button" class="text-blue-600 hover:text-blue-800">Login</button>
                     <div id="userInfo" class="hidden"></div>
-                    <button id="logoutBtn" onclick="logout()" class="hidden bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-4">
+                    <button id="logout-button" class="hidden bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-4">
                         Logout
                     </button>
                 </div>
@@ -486,15 +487,15 @@
                 </button>
             </div>
             <div class="flex flex-col space-y-4">
-                <a href="#home" class="text-gray-600 hover:text-blue-600">Home</a>
+                <a href="#introduction" class="text-gray-600 hover:text-blue-600">Introduction</a>
                 <a href="#housing" class="text-gray-600 hover:text-blue-600">Housing</a>
                 <a href="#timeline" class="text-gray-600 hover:text-blue-600">Timeline</a>
-                <a href="#weather" class="text-gray-600 hover:text-blue-600">Weather</a>
                 <a href="#schools" class="text-gray-600 hover:text-blue-600">Schools</a>
+                <a href="#weather" class="text-gray-600 hover:text-blue-600">Weather</a>
                 <a href="#budget" class="text-gray-600 hover:text-blue-600">Budget</a>
-                <a href="#todo" class="text-gray-600 hover:text-blue-600">Todo</a>
-                <a href="#more" class="text-gray-600 hover:text-blue-600">More</a>
+                <a href="#currency" class="text-gray-600 hover:text-blue-600">Currency</a>
                 <a href="#journal" class="text-gray-600 hover:text-blue-600">Journal</a>
+                <a href="#about" class="text-gray-600 hover:text-blue-600">About</a>
             </div>
         </div>
     </div>
@@ -1605,6 +1606,61 @@
         </div>
     </section>
 
+    <!-- Currency Exchange Section -->
+    <section id="currency" class="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-2">Currency Exchange</h2>
+            <p class="text-xl text-center text-gray-600 mb-16">Quick USD to EUR conversion</p>
+
+            <div class="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Amount</label>
+                        <input type="number" id="amount" min="0" step="0.01" 
+                               class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" 
+                               value="1">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">From</label>
+                        <select id="fromCurrency" 
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="GBP">GBP - British Pound</option>
+                            <option value="JPY">JPY - Japanese Yen</option>
+                            <option value="AUD">AUD - Australian Dollar</option>
+                            <option value="CAD">CAD - Canadian Dollar</option>
+                            <option value="CHF">CHF - Swiss Franc</option>
+                            <option value="CNY">CNY - Chinese Yuan</option>
+                        </select>
+                    </div>
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">To</label>
+                        <select id="toCurrency" 
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="GBP">GBP - British Pound</option>
+                            <option value="JPY">JPY - Japanese Yen</option>
+                            <option value="AUD">AUD - Australian Dollar</option>
+                            <option value="CAD">CAD - Canadian Dollar</option>
+                            <option value="CHF">CHF - Swiss Franc</option>
+                            <option value="CNY">CNY - Chinese Yuan</option>
+                        </select>
+                        <button onclick="swapCurrencies()" 
+                                class="absolute -left-4 top-8 transform -translate-x-full bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            <i class="fas fa-exchange-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="result" class="text-center py-6 border-t border-gray-200">
+                    <!-- Exchange rate result will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Family Journal Section -->
     <section id="journal" class="py-20 bg-gray-50 protected-feature">
         <div class="max-w-7xl mx-auto px-4">
@@ -1717,7 +1773,7 @@
                     <div class="relative flex items-center group" data-aos="fade-up">
                         <div class="w-1/2 pr-8 text-right group-hover:transform group-hover:-translate-x-2 transition-transform">
                             <h3 class="text-2xl font-semibold mb-2 text-blue-600">The Big Decision</h3>
-                            <p class="text-gray-600">From dreaming about Spain to making it our reality</p>
+                            <p class="text-gray-600 mb-2">From dreaming about Spain to making it our reality</p>
                         </div>
                         <div class="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-white shadow-lg
                                     border-4 border-blue-400 group-hover:scale-110 transition-transform">
@@ -1755,7 +1811,7 @@
                     <div class="relative flex items-center group" data-aos="fade-up" data-aos-delay="200">
                         <div class="w-1/2 pr-8 text-right group-hover:transform group-hover:-translate-x-2 transition-transform">
                             <h3 class="text-2xl font-semibold mb-2 text-blue-600">The Big Move</h3>
-                            <p class="text-gray-600">Crossing the Atlantic to start our new life</p>
+                            <p class="text-gray-600 mb-2">Crossing the Atlantic to start our new life</p>
                         </div>
                         <div class="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-white shadow-lg
                                     border-4 border-blue-400 group-hover:scale-110 transition-transform">
