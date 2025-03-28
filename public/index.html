@@ -17,6 +17,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
     
+    <!-- Auth0 SDK -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="js/auth.js"></script>
+    
     <!-- App Scripts -->
     <script src="./js/schools.js" defer></script>
     <script src="./js/budget.js" defer></script>
@@ -27,11 +31,7 @@
     <script src="./js/clothing.js" defer></script>
     <script src="./js/countdown.js" defer></script>
     <script src="./js/decorative.js" defer></script>
-    
-    <!-- Auth0 SDK -->
-    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/weather.js"></script>
+    <script src="js/weather.js" defer></script>
     
     <script>
         tailwind.config = {
@@ -470,9 +470,9 @@
                     </button>
                 </div>
                 <div class="flex items-center">
-                    <button id="login-button" class="text-blue-600 hover:text-blue-800">Login</button>
+                    <button id="loginBtn" onclick="login()" class="text-blue-600 hover:text-blue-800">Login</button>
                     <div id="userInfo" class="hidden"></div>
-                    <button id="logout-button" class="hidden bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-4">
+                    <button id="logoutBtn" onclick="logout()" class="hidden bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-4">
                         Logout
                     </button>
                 </div>

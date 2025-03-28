@@ -14,6 +14,7 @@ const budgetCategories = {
 
 // Budget management
 let budgetData = null;
+let categoryChart = null; // Store chart instance
 
 async function initializeBudget() {
     if (!isAuthenticated) return;
@@ -86,32 +87,50 @@ function updateBudgetDisplay() {
 function updateCategoryChart() {
     if (!budgetData) return;
 
-    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const ctx = document.getElementById('categoryChart');
+    if (!ctx) return; // Exit if canvas element doesn't exist
+
     const categoryTotals = {};
     
+    // Calculate totals for each category
     budgetData.expenses.forEach(expense => {
         categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + expense.amount;
     });
 
-    new Chart(ctx, {
+    // Prepare data for the chart
+    const data = {
+        labels: Object.keys(categoryTotals).map(cat => budgetCategories[cat]?.name || cat),
+        datasets: [{
+            data: Object.values(categoryTotals),
+            backgroundColor: Object.keys(categoryTotals).map(cat => budgetCategories[cat]?.color || '#9966FF'),
+            borderWidth: 1
+        }]
+    };
+
+    // Destroy existing chart if it exists
+    if (categoryChart) {
+        categoryChart.destroy();
+    }
+
+    // Create new chart
+    categoryChart = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-            labels: Object.keys(categoryTotals),
-            datasets: [{
-                data: Object.values(categoryTotals),
-                backgroundColor: budgetData.categories.map(cat => cat.color || '#' + Math.floor(Math.random()*16777215).toString(16))
-            }]
-        },
+        data: data,
         options: {
             responsive: true,
-            maintainAspectRatio: false
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
         }
     });
 }
 
 // Initialize budget when auth state changes
 document.addEventListener('DOMContentLoaded', () => {
-    if (isAuthenticated) {
+    if (typeof isAuthenticated !== 'undefined' && isAuthenticated) {
         initializeBudget();
     }
 });
@@ -439,3 +458,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateCategorySpending();
     updateBudgetSummary();
 });
+
+// Export functions for use in other modules
+window.addExpense = addExpense;
+window.initializeBudget = initializeBudget;

@@ -5,12 +5,22 @@ import os
 import sys
 import json
 from dotenv import load_dotenv
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__, static_folder='public', static_url_path='')
-CORS(app)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "http://localhost:3000",
+            "https://personal-website-taupe-pi-67.vercel.app"
+        ],
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 # MongoDB setup
 MONGODB_URI = os.getenv('MONGODB_URI')
