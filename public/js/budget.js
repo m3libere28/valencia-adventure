@@ -64,8 +64,7 @@ function resetBudgetData() {
     updateBudgetDisplay();
 }
 
-async function addExpense(event) {
-    event.preventDefault();
+async function addExpense() {
     const user = firebase.auth().currentUser;
     if (!user) {
         showError('Please login to add expenses');
@@ -99,8 +98,7 @@ async function addExpense(event) {
     }
 }
 
-async function handleSetBudget(event) {
-    event.preventDefault();
+async function handleSetBudget() {
     const user = firebase.auth().currentUser;
     if (!user) {
         showError('Please login to set budget');
@@ -179,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (expenseForm) {
         expenseForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            await addExpense(event);
+            await addExpense();
             expenseForm.reset();
         });
     }
@@ -187,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (budgetForm) {
         budgetForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            await handleSetBudget(event);
+            await handleSetBudget();
             budgetForm.reset();
         });
     }

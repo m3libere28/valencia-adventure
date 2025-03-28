@@ -34,14 +34,14 @@ function resetJournalEntries() {
     updateJournalDisplay();
 }
 
-async function addJournalEntry(event) {
+async function addJournalEntry() {
     const user = firebase.auth().currentUser;
     if (!user) {
         showError('Please login to add journal entries');
         return;
     }
 
-    const form = event.target;
+    const form = document.getElementById('journal-form');
     const entry = {
         title: form.title.value,
         content: form.content.value,
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (journalForm) {
         journalForm.addEventListener('submit', async (event) => {
             event.preventDefault();
-            await addJournalEntry(event);
+            await addJournalEntry();
             journalForm.reset();
         });
     }
