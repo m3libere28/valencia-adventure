@@ -3,6 +3,8 @@
 
 # environment variables
 .env
+__pycache__/
+*.pyc
 
 # logs
 *.log
