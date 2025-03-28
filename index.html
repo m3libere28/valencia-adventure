@@ -20,6 +20,7 @@
     <script src="./js/budget.js" defer></script>
     <script src="./js/journal.js" defer></script>
     <script src="./js/apartments.js" defer></script>
+    <script src="./js/housing.js" defer></script>
     
     <script>
         tailwind.config = {
@@ -348,9 +349,56 @@
         .loader-pulse {
             animation: pulse 2s ease-in-out infinite;
         }
+
+        /* Geometric Background Pattern */
+        .geometric-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+            background: 
+                linear-gradient(45deg, #FF9F1C 25%, transparent 25%) -50px 0,
+                linear-gradient(-45deg, #FF9F1C 25%, transparent 25%) -50px 0,
+                linear-gradient(45deg, transparent 75%, #FF9F1C 75%) -50px 0,
+                linear-gradient(-45deg, transparent 75%, #FF9F1C 75%) -50px 0;
+            background-size: 100px 100px;
+            animation: slide 60s linear infinite;
+        }
+
+        @keyframes slide {
+            0% {
+                background-position: -50px 0, -50px 0, -50px 0, -50px 0;
+            }
+            100% {
+                background-position: 50px 100px, 50px 100px, 50px 100px, 50px 100px;
+            }
+        }
+
+        /* Make content sections more translucent to show pattern */
+        .content-section {
+            background-color: rgba(255, 255, 255, 0.75) !important;
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+
+        .content-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            background-color: rgba(255, 255, 255, 0.85) !important;
+        }
+
+        /* Gradient overlays for sections */
+        .section-gradient {
+            background: linear-gradient(135deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.7) 100%);
+        }
     </style>
 </head>
-<body class="font-sans">
+<body class="font-sans bg-white">
+    <!-- Add geometric background -->
+    <div class="geometric-background"></div>
     <!-- Loader -->
     <div id="loader" class="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 transition-opacity duration-500">
         <div class="relative w-64 h-64">
@@ -733,7 +781,7 @@
             <!-- Popular Spanish Real Estate Websites -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
                 <a href="https://www.idealista.com" target="_blank" rel="noopener"
-                   class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                   class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow content-section">
                     <h3 class="text-xl font-semibold mb-3 text-blue-600">Idealista</h3>
                     <p class="text-gray-600 mb-4">Spain's largest property portal with extensive listings in Valencia</p>
                     <div class="flex items-center text-sm text-gray-500">
@@ -743,7 +791,7 @@
                 </a>
 
                 <a href="https://www.fotocasa.es" target="_blank" rel="noopener"
-                   class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                   class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow content-section">
                     <h3 class="text-xl font-semibold mb-3 text-blue-600">Fotocasa</h3>
                     <p class="text-gray-600 mb-4">Popular Spanish real estate site with detailed property photos</p>
                     <div class="flex items-center text-sm text-gray-500">
@@ -753,7 +801,7 @@
                 </a>
 
                 <a href="https://www.pisos.com" target="_blank" rel="noopener"
-                   class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+                   class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow content-section">
                     <h3 class="text-xl font-semibold mb-3 text-blue-600">Pisos.com</h3>
                     <p class="text-gray-600 mb-4">Comprehensive property search with virtual tours</p>
                     <div class="flex items-center text-sm text-gray-500">
@@ -764,7 +812,7 @@
             </div>
 
             <!-- Rental Process Guide -->
-            <div class="bg-white rounded-xl shadow-lg p-8 mb-16">
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-16 content-section">
                 <h3 class="text-2xl font-bold mb-6">Rental Process in Spain</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div class="space-y-3">
@@ -822,7 +870,7 @@
             </div>
 
             <!-- Rental Calculator -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="bg-white rounded-xl shadow-lg p-6 content-section">
                 <h3 class="text-xl font-semibold mb-6">Rental Cost Calculator</h3>
                 <div class="space-y-6">
                     <div class="relative">
@@ -867,13 +915,16 @@
                         <span>Calculate Total</span>
                     </button>
                     
-                    <div id="cost-result" class="hidden"></div>
+                    <!-- Results Area with Initial Message -->
+                    <div id="cost-result" class="p-4 bg-gray-50 rounded-lg text-center text-gray-600">
+                        Enter the monthly rent and options above to calculate costs
+                    </div>
                 </div>
             </div>
 
             <!-- Useful Tools -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
                     <h3 class="text-xl font-semibold mb-4">Neighborhood Guide</h3>
                     <div class="space-y-4">
                         <div class="border-b pb-4">
@@ -927,7 +978,7 @@
             <div class="timeline-container relative">
                 <!-- March-May 2025 -->
                 <div class="timeline-item group" data-phase="prep">
-                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow content-section">
                         <div class="flex items-center mb-4">
                             <span class="text-3xl mr-4">📚</span>
                             <h3 class="text-2xl font-bold">March–May 2025: Prepping & Research</h3>
@@ -971,7 +1022,7 @@
 
                 <!-- June-August 2025 -->
                 <div class="timeline-item group" data-phase="legal">
-                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow content-section">
                         <div class="flex items-center mb-4">
                             <span class="text-3xl mr-4">🛂</span>
                             <h3 class="text-2xl font-bold">June–August 2025: Legal & Logistics</h3>
@@ -1009,7 +1060,7 @@
 
                 <!-- September-November 2025 -->
                 <div class="timeline-item group" data-phase="docs">
-                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow content-section">
                         <div class="flex items-center mb-4">
                             <span class="text-3xl mr-4">📦</span>
                             <h3 class="text-2xl font-bold">September–November 2025: Documents & Downsizing</h3>
@@ -1047,7 +1098,7 @@
 
                 <!-- December 2025-February 2026 -->
                 <div class="timeline-item group" data-phase="health">
-                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow content-section">
                         <div class="flex items-center mb-4">
                             <span class="text-3xl mr-4">🎒</span>
                             <h3 class="text-2xl font-bold">December 2025–February 2026: Health & Housing</h3>
@@ -1085,7 +1136,7 @@
 
                 <!-- March-May 2026 -->
                 <div class="timeline-item group" data-phase="school">
-                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow content-section">
                         <div class="flex items-center mb-4">
                             <span class="text-3xl mr-4">📘</span>
                             <h3 class="text-2xl font-bold">March–May 2026: Schooling & Systems</h3>
@@ -1123,7 +1174,7 @@
 
                 <!-- June 2026 -->
                 <div class="timeline-item group" data-phase="final">
-                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow content-section">
                         <div class="flex items-center mb-4">
                             <span class="text-3xl mr-4">📅</span>
                             <h3 class="text-2xl font-bold">June 2026: Final Prep</h3>
@@ -1161,7 +1212,7 @@
 
                 <!-- July 2026 -->
                 <div class="timeline-item group" data-phase="move">
-                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow">
+                    <div class="timeline-content bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow content-section">
                         <div class="flex items-center mb-4">
                             <span class="text-3xl mr-4">✈️</span>
                             <h3 class="text-2xl font-bold">July 2026: Move to Spain!</h3>
@@ -1300,7 +1351,7 @@
             <p class="text-xl text-center text-gray-600 mb-16">Stay comfortable in Mediterranean climate</p>
 
             <!-- Current Weather Card -->
-            <div class="weather-card bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-xl p-8 mb-12 text-white transform hover:scale-105 transition-transform duration-300">
+            <div class="weather-card bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-xl p-8 mb-12 text-white transform hover:scale-105 transition-transform duration-300 content-section">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="text-center md:text-left">
                         <h3 class="text-2xl font-semibold mb-2">Current Weather</h3>
@@ -1351,7 +1402,7 @@
             <!-- Seasonal Weather Guide -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Spring -->
-                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300 content-section">
                     <div class="text-center mb-4">
                         <span class="text-4xl">🌸</span>
                         <h3 class="text-xl font-semibold mt-2">Spring (Mar-May)</h3>
@@ -1381,7 +1432,7 @@
                 </div>
 
                 <!-- Summer -->
-                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300 content-section">
                     <div class="text-center mb-4">
                         <span class="text-4xl">☀️</span>
                         <h3 class="text-xl font-semibold mt-2">Summer (Jun-Aug)</h3>
@@ -1411,7 +1462,7 @@
                 </div>
 
                 <!-- Fall -->
-                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300 content-section">
                     <div class="text-center mb-4">
                         <span class="text-4xl">🍂</span>
                         <h3 class="text-xl font-semibold mt-2">Fall (Sep-Nov)</h3>
@@ -1441,7 +1492,7 @@
                 </div>
 
                 <!-- Winter -->
-                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300">
+                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300 content-section">
                     <div class="text-center mb-4">
                         <span class="text-4xl">❄️</span>
                         <h3 class="text-xl font-semibold mt-2">Winter (Dec-Feb)</h3>
@@ -1472,7 +1523,7 @@
             </div>
 
             <!-- Weather Chart -->
-            <div class="mt-16 bg-white rounded-xl shadow-lg p-6">
+            <div class="mt-16 bg-white rounded-xl shadow-lg p-6 content-section">
                 <h3 class="text-2xl font-semibold mb-6 text-center">Annual Temperature Range</h3>
                 <canvas id="weather-chart" height="100"></canvas>
             </div>
@@ -1619,7 +1670,7 @@
             <p class="text-xl text-center text-gray-600 mb-16">Finding the perfect educational fit</p>
 
             <!-- Schools Map -->
-            <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-12 content-section">
                 <h4 class="text-2xl font-semibold mb-6">Schools Map</h4>
                 <div id="schools-map" class="h-[600px] rounded-lg"></div>
             </div>
@@ -1638,7 +1689,7 @@
             </div>
 
             <!-- Application Tracking Form -->
-            <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-12 content-section">
                 <h4 class="text-2xl font-semibold mb-6">School Application Tracker</h4>
                 <form id="school-application-form" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1681,7 +1732,7 @@
             </div>
 
             <!-- Applications Table -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden content-section">
                 <h4 class="text-2xl font-semibold mb-6">Current Applications</h4>
                 <table class="min-w-full">
                     <thead>
@@ -1711,7 +1762,7 @@
 
             <!-- Budget Summary -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="text-xl font-semibold">Total Budget</h4>
                         <button onclick="setTotalBudget()" class="text-blue-500 hover:text-blue-700">
@@ -1720,18 +1771,18 @@
                     </div>
                     <p id="total-budget" class="text-3xl font-bold text-green-500">€0.00</p>
                 </div>
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
                     <h4 class="text-xl font-semibold mb-4">Total Expenses</h4>
                     <p id="total-expenses" class="text-3xl font-bold text-red-500">€0.00</p>
                 </div>
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
                     <h4 class="text-xl font-semibold mb-4">Remaining Budget</h4>
                     <p id="remaining-budget" class="text-3xl font-bold text-blue-500">€0.00</p>
                 </div>
             </div>
 
             <!-- Budget Progress -->
-            <div class="bg-white rounded-xl shadow-lg p-6 mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-12 content-section">
                 <h4 class="text-xl font-semibold mb-4">Budget Progress</h4>
                 <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
                     <div id="budget-progress" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
@@ -1740,13 +1791,13 @@
 
             <!-- Charts -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
                     <h4 class="text-xl font-semibold mb-4">Spending by Category</h4>
                     <div class="h-80">
                         <canvas id="spending-chart"></canvas>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
                     <h4 class="text-xl font-semibold mb-4">Monthly Spending Trend</h4>
                     <div class="h-80">
                         <canvas id="monthly-chart"></canvas>
@@ -1757,13 +1808,13 @@
             <!-- Category Spending -->
             <div class="mb-12">
                 <h3 class="text-2xl font-semibold mb-6">Category Spending</h3>
-                <div id="category-spending" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div id="category-spending" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 content-section">
                     <!-- Category cards will be generated dynamically -->
                 </div>
             </div>
 
             <!-- Add Expense Form -->
-            <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-12 content-section">
                 <h4 class="text-2xl font-semibold mb-6">Add New Expense</h4>
                 <form id="expense-form" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1806,7 +1857,7 @@
             </div>
 
             <!-- Expenses List -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden content-section">
                 <div class="p-6 flex justify-between items-center">
                     <h4 class="text-2xl font-semibold">Recent Expenses</h4>
                     <div class="space-x-4">
@@ -1846,7 +1897,7 @@
             <p class="text-xl text-center text-gray-600 mb-16">Capture our family adventures in Valencia</p>
 
             <!-- Add Entry Form -->
-            <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-12 content-section">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-2xl font-semibold">Add New Entry</h3>
                     <div class="space-x-4">
@@ -1919,7 +1970,7 @@
             <!-- Map and Entries Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Map -->
-                <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
                     <h3 class="text-2xl font-semibold mb-4">Our Adventures Map</h3>
                     <div id="journal-map" class="h-[500px] rounded-lg"></div>
                 </div>
@@ -2073,7 +2124,11 @@
                 function updateCount() {
                     const current = parseInt(counter.innerText);
                     if (current < target) {
-                        counter.innerText = Math.min(Math.ceil(current + step), target);
+                        current += step;
+                        if (current >= target) {
+                            current = target;
+                        }
+                        counter.innerText = Math.round(current);
                         setTimeout(updateCount, 16);
                     }
                 }
