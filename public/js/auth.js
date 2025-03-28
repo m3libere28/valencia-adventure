@@ -122,6 +122,19 @@ window.logout = async function() {
     }
 };
 
+// Get access token for API calls
+window.getAccessToken = async function() {
+    try {
+        if (!auth0Client) {
+            throw new Error('Auth0 client not initialized');
+        }
+        return await auth0Client.getTokenSilently();
+    } catch (err) {
+        console.error('Error getting access token:', err);
+        throw err;
+    }
+};
+
 // Update UI based on authentication state
 function updateUI() {
     const loginBtn = document.getElementById('loginBtn');
@@ -174,19 +187,6 @@ function updateUI() {
         document.querySelectorAll('.protected-feature').forEach(el => {
             el.classList.add('hidden');
         });
-    }
-}
-
-// Get access token for API calls
-async function getAccessToken() {
-    try {
-        if (!auth0Client) {
-            throw new Error('Auth0 client not initialized');
-        }
-        return await auth0Client.getTokenSilently();
-    } catch (err) {
-        console.error('Error getting access token:', err);
-        throw err;
     }
 }
 

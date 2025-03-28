@@ -39,34 +39,45 @@ async function initializeJournal() {
 // Load journal entries from the server
 async function loadJournalEntries() {
     try {
-        console.log('Loading journal entries...');
-        const token = await window.getAccessToken();
-        if (!token) {
-            throw new Error('No access token available');
+        if (!window.isAuthenticated) {
+            console.log('User not authenticated, skipping journal load');
+            return;
         }
 
+        const token = await window.getAccessToken();
         const response = await fetch(`${API_BASE_URL}/api/journal/entries`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.success) {
-            journalEntries = data.entries || [];
-            updateJournalEntries();
-            console.log('Journal entries loaded:', journalEntries.length);
+        if (response.ok) {
+            const entries = await response.json();
+            displayJournalEntries(entries);
         } else {
             throw new Error('Failed to load journal entries');
         }
     } catch (error) {
         console.error('Error loading journal entries:', error);
-        showError('Failed to load journal entries. Please try again.');
     }
+}
+
+function displayJournalEntries(entries) {
+    const entriesContainer = document.getElementById('journal-entries');
+    if (!entriesContainer) return;
+
+    entriesContainer.innerHTML = entries.length ? '' : '<p class="text-gray-600">No entries yet. Start writing!</p>';
+    
+    entries.forEach(entry => {
+        const entryElement = document.createElement('div');
+        entryElement.className = 'journal-entry bg-white rounded-lg shadow-md p-6 mb-4';
+        entryElement.innerHTML = `
+            <h4 class="text-xl font-semibold mb-2">${entry.title}</h4>
+            <div class="text-gray-600 mb-3">${new Date(entry.date).toLocaleDateString()}</div>
+            <p class="text-gray-700">${entry.content}</p>
+        `;
+        entriesContainer.appendChild(entryElement);
+    });
 }
 
 // Update the UI with journal entries
@@ -257,7 +268,50 @@ window.addEventListener('authStateChanged', (event) => {
 });
 
 // Journal functions
-function exportJournalEntries() {
+async function loadJournalEntries() {
+    try {
+        if (!window.isAuthenticated) {
+            console.log('User not authenticated, skipping journal load');
+            return;
+        }
+
+        const token = await window.getAccessToken();
+        const response = await fetch(`${API_BASE_URL}/api/journal/entries`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const entries = await response.json();
+            displayJournalEntries(entries);
+        } else {
+            throw new Error('Failed to load journal entries');
+        }
+    } catch (error) {
+        console.error('Error loading journal entries:', error);
+    }
+}
+
+function displayJournalEntries(entries) {
+    const entriesContainer = document.getElementById('journal-entries');
+    if (!entriesContainer) return;
+
+    entriesContainer.innerHTML = entries.length ? '' : '<p class="text-gray-600">No entries yet. Start writing!</p>';
+    
+    entries.forEach(entry => {
+        const entryElement = document.createElement('div');
+        entryElement.className = 'journal-entry bg-white rounded-lg shadow-md p-6 mb-4';
+        entryElement.innerHTML = `
+            <h4 class="text-xl font-semibold mb-2">${entry.title}</h4>
+            <div class="text-gray-600 mb-3">${new Date(entry.date).toLocaleDateString()}</div>
+            <p class="text-gray-700">${entry.content}</p>
+        `;
+        entriesContainer.appendChild(entryElement);
+    });
+}
+
+function exportJournal() {
     const journalEntries = document.querySelectorAll('.journal-entry');
     const data = Array.from(journalEntries).map(entry => ({
         title: entry.querySelector('h4').textContent,
@@ -285,8 +339,19 @@ document.addEventListener('DOMContentLoaded', () => {
         journalForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            if (!window.isAuthenticated) {
+                console.error('User not authenticated');
+                alert('Please log in to add journal entries.');
+                return;
+            }
+            
             const title = document.getElementById('entry-title').value;
             const content = document.getElementById('entry-content').value;
+            
+            if (!title || !content) {
+                alert('Please fill in both title and content.');
+                return;
+            }
             
             try {
                 const token = await window.getAccessToken();
@@ -314,6 +379,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Initial load of journal entries
-    loadJournalEntries();
+    // Listen for auth state changes
+    window.addEventListener('authStateChanged', (e) => {
+        if (e.detail.isAuthenticated) {
+            loadJournalEntries();
+        }
+    });
+    
+    // Initial load if authenticated
+    if (window.isAuthenticated) {
+        loadJournalEntries();
+    }
 });
