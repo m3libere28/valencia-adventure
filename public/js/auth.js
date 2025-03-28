@@ -49,12 +49,15 @@ async function initAuth() {
                 audience: auth0Config.audience,
                 scope: auth0Config.scope
             },
-            cacheLocation: 'localstorage'
+            cacheLocation: 'localstorage',
+            useRefreshTokens: true
         });
 
+        console.log('Auth0 client initialized');
+
         // Check for authentication state on page load
-        if (window.location.search.includes("code=")) {
-            console.log('Auth code detected, handling redirect...');
+        if (window.location.search.includes("code=") || window.location.search.includes("error=")) {
+            console.log('Auth code or error detected, handling redirect...');
             try {
                 await auth0Client.handleRedirectCallback();
                 window.history.replaceState({}, document.title, window.location.pathname);
@@ -62,6 +65,7 @@ async function initAuth() {
             } catch (err) {
                 console.error('Error handling redirect:', err);
                 showError('Failed to complete authentication. Please try again.');
+                return;
             }
         }
 
@@ -70,6 +74,8 @@ async function initAuth() {
         if (window.isAuthenticated) {
             userProfile = await auth0Client.getUser();
             console.log('User is authenticated:', userProfile);
+        } else {
+            console.log('User is not authenticated');
         }
 
         // Update UI and dispatch event
@@ -86,6 +92,12 @@ async function initAuth() {
 
 // Login function
 async function login() {
+    if (!auth0Client) {
+        console.error('Auth0 client not initialized');
+        showError('Authentication system not ready. Please refresh the page.');
+        return;
+    }
+    
     try {
         console.log('Starting login process...');
         await auth0Client.loginWithRedirect({
@@ -108,12 +120,6 @@ async function logout() {
                 returnTo: window.location.origin
             }
         });
-        window.isAuthenticated = false;
-        userProfile = null;
-        updateUI();
-        window.dispatchEvent(new CustomEvent('authStateChanged', {
-            detail: { isAuthenticated: false }
-        }));
     } catch (err) {
         console.error('Logout error:', err);
         showError('Failed to logout. Please try again.');
@@ -121,53 +127,57 @@ async function logout() {
 }
 
 // Update UI based on authentication state
-async function updateUI() {
+function updateUI() {
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const userSection = document.getElementById('userSection');
-    const userName = document.getElementById('userName');
     const userPicture = document.getElementById('userPicture');
-
-    try {
-        const isAuthenticated = await auth0Client.isAuthenticated();
-        console.log('Updating UI, authenticated:', isAuthenticated);
-
-        if (isAuthenticated) {
-            loginBtn.style.display = 'none';
-            logoutBtn.style.display = 'block';
-            userSection.style.display = 'flex';
-
-            if (!userProfile) {
-                userProfile = await auth0Client.getUser();
-            }
-
-            if (userProfile) {
-                userName.textContent = userProfile.name || userProfile.email;
-                if (userProfile.picture) {
-                    userPicture.src = userProfile.picture;
-                    userPicture.style.display = 'block';
-                }
-            }
-
-            // Show protected content
-            document.querySelectorAll('.protected-content').forEach(element => {
-                element.style.display = 'block';
-            });
-        } else {
-            loginBtn.style.display = 'block';
-            logoutBtn.style.display = 'none';
-            userSection.style.display = 'none';
-            userName.textContent = '';
-            userPicture.style.display = 'none';
-
-            // Hide protected content
-            document.querySelectorAll('.protected-content').forEach(element => {
-                element.style.display = 'none';
-            });
+    const userName = document.getElementById('userName');
+    
+    if (window.isAuthenticated && userProfile) {
+        // Hide login button
+        if (loginBtn) loginBtn.classList.add('hidden');
+        
+        // Show user section
+        if (userSection) userSection.classList.remove('hidden');
+        if (userSection) userSection.classList.add('flex');
+        
+        // Show logout button
+        if (logoutBtn) logoutBtn.classList.remove('hidden');
+        
+        // Update user info
+        if (userPicture) {
+            userPicture.src = userProfile.picture;
+            userPicture.classList.remove('hidden');
         }
-    } catch (err) {
-        console.error('Error updating UI:', err);
-        showError('Failed to update the page. Please refresh.');
+        if (userName) userName.textContent = userProfile.name;
+        
+        // Show protected features
+        document.querySelectorAll('.protected-feature').forEach(el => {
+            el.classList.remove('hidden');
+        });
+    } else {
+        // Show login button
+        if (loginBtn) loginBtn.classList.remove('hidden');
+        
+        // Hide user section
+        if (userSection) userSection.classList.add('hidden');
+        if (userSection) userSection.classList.remove('flex');
+        
+        // Hide logout button
+        if (logoutBtn) logoutBtn.classList.add('hidden');
+        
+        // Clear user info
+        if (userPicture) {
+            userPicture.src = '';
+            userPicture.classList.add('hidden');
+        }
+        if (userName) userName.textContent = '';
+        
+        // Hide protected features
+        document.querySelectorAll('.protected-feature').forEach(el => {
+            el.classList.add('hidden');
+        });
     }
 }
 
@@ -180,69 +190,20 @@ async function getAccessToken() {
         return await auth0Client.getTokenSilently();
     } catch (err) {
         console.error('Error getting access token:', err);
-        showError('Failed to get access token. Please try logging in again.');
-        return null;
-    }
-}
-
-// API helpers
-async function apiGet(endpoint) {
-    try {
-        const token = await getAccessToken();
-        if (!token) return null;
-
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (err) {
-        console.error('API GET error:', err);
-        showError('Failed to fetch data. Please try again.');
-        return null;
-    }
-}
-
-async function apiPost(endpoint, data) {
-    try {
-        const token = await getAccessToken();
-        if (!token) return null;
-
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (err) {
-        console.error('API POST error:', err);
-        showError('Failed to save data. Please try again.');
-        return null;
+        throw err;
     }
 }
 
 // Show error message
 function showError(message) {
-    const alert = document.getElementById('auth-alert');
-    if (alert) {
-        alert.textContent = message;
-        alert.className = 'bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4';
-        alert.style.display = 'block';
-        setTimeout(() => alert.style.display = 'none', 5000);
+    const alertDiv = document.getElementById('auth-alert');
+    if (alertDiv) {
+        alertDiv.textContent = message;
+        alertDiv.classList.remove('hidden');
+        alertDiv.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-700', 'px-4', 'py-3', 'rounded');
+        setTimeout(() => {
+            alertDiv.classList.add('hidden');
+        }, 5000);
     } else {
         console.error('Error:', message);
     }
@@ -252,8 +213,8 @@ function showError(message) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing Auth0...');
     initAuth().catch(error => {
-        console.error('Auth initialization error:', error);
-        showError('Failed to initialize authentication. Please refresh the page.');
+        console.error('Failed to initialize Auth0:', error);
+        showError('Failed to initialize authentication system.');
     });
 });
 
