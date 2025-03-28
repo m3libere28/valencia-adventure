@@ -4,15 +4,7 @@ const db = window.db;
 // Journal management
 let journalEntries = [];
 
-// Initialize journal when auth state changes
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        loadJournalEntries(user.uid);
-    } else {
-        resetJournalEntries();
-    }
-});
-
+// Helper functions
 async function loadJournalEntries(userId) {
     try {
         const doc = await db.collection('journals').doc(userId).get();
@@ -21,6 +13,7 @@ async function loadJournalEntries(userId) {
         } else {
             // Create new journal document for user
             await db.collection('journals').doc(userId).set({ entries: [] });
+            journalEntries = [];
         }
         updateJournalDisplay();
     } catch (error) {
@@ -33,6 +26,17 @@ function resetJournalEntries() {
     journalEntries = [];
     updateJournalDisplay();
 }
+
+// Initialize journal when auth state changes
+window.addEventListener('authStateChanged', (event) => {
+    const { isAuthenticated, user } = event.detail;
+    console.log('Auth state changed in journal.js:', isAuthenticated, user);
+    if (isAuthenticated && user) {
+        loadJournalEntries(user.uid);
+    } else {
+        resetJournalEntries();
+    }
+});
 
 async function addJournalEntry() {
     const user = firebase.auth().currentUser;

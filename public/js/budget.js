@@ -3,27 +3,51 @@ const db = window.db;
 
 // Budget categories with icons and colors
 const budgetCategories = {
-    housing: { name: 'Housing', icon: 'fa-home', color: '#FF6384' },
-    utilities: { name: 'Utilities', icon: 'fa-bolt', color: '#36A2EB' },
-    groceries: { name: 'Groceries', icon: 'fa-shopping-cart', color: '#FFCE56' },
-    transportation: { name: 'Transportation', icon: 'fa-car', color: '#4BC0C0' },
-    healthcare: { name: 'Healthcare', icon: 'fa-hospital', color: '#9966FF' },
-    entertainment: { name: 'Entertainment', icon: 'fa-film', color: '#FF9F40' },
-    education: { name: 'Education', icon: 'fa-graduation-cap', color: '#FF6384' },
-    shopping: { name: 'Shopping', icon: 'fa-shopping-bag', color: '#36A2EB' },
-    savings: { name: 'Savings', icon: 'fa-piggy-bank', color: '#4BC0C0' },
-    other: { name: 'Other', icon: 'fa-ellipsis-h', color: '#9966FF' }
+    housing: { icon: '🏠', color: '#4CAF50' },
+    utilities: { icon: '💡', color: '#2196F3' },
+    groceries: { icon: '🛒', color: '#FF9800' },
+    transportation: { icon: '🚗', color: '#9C27B0' },
+    entertainment: { icon: '🎭', color: '#E91E63' },
+    healthcare: { icon: '🏥', color: '#F44336' },
+    education: { icon: '📚', color: '#3F51B5' },
+    other: { icon: '📝', color: '#607D8B' }
 };
 
-// Budget management
-let budgetData = {
-    totalBudget: 0,
-    expenses: [],
-    categoryLimits: {}
-};
-let doughnutChart = null;
-let lineChart = null;
-let categoryChart = null;
+// Budget state
+let currentBudget = 0;
+let expenses = [];
+
+// Helper functions
+async function loadBudgetData(userId) {
+    try {
+        const doc = await db.collection('budgets').doc(userId).get();
+        if (doc.exists) {
+            const data = doc.data();
+            currentBudget = data.budget || 0;
+            expenses = data.expenses || [];
+        } else {
+            // Create new budget document for user
+            await db.collection('budgets').doc(userId).set({
+                budget: 0,
+                expenses: []
+            });
+            currentBudget = 0;
+            expenses = [];
+        }
+        updateBudgetDisplay();
+        updateExpensesDisplay();
+    } catch (error) {
+        console.error('Error loading budget data:', error);
+        showError('Failed to load budget data. Please try again.');
+    }
+}
+
+function resetBudgetData() {
+    currentBudget = 0;
+    expenses = [];
+    updateBudgetDisplay();
+    updateExpensesDisplay();
+}
 
 // Initialize budget when auth state changes
 window.addEventListener('authStateChanged', (event) => {
@@ -35,34 +59,6 @@ window.addEventListener('authStateChanged', (event) => {
         resetBudgetData();
     }
 });
-
-async function loadBudgetData(userId) {
-    console.log('Loading budget data for user:', userId);
-    try {
-        const doc = await db.collection('budgets').doc(userId).get();
-        if (doc.exists) {
-            budgetData = doc.data();
-            console.log('Loaded budget data:', budgetData);
-        } else {
-            // Create new budget document for user
-            await db.collection('budgets').doc(userId).set(budgetData);
-            console.log('Created new budget document');
-        }
-        updateBudgetDisplay();
-    } catch (error) {
-        console.error('Error loading budget data:', error);
-        showError('Failed to load budget data. Please try again.');
-    }
-}
-
-function resetBudgetData() {
-    budgetData = {
-        totalBudget: 0,
-        expenses: [],
-        categoryLimits: {}
-    };
-    updateBudgetDisplay();
-}
 
 async function addExpense() {
     const user = firebase.auth().currentUser;
@@ -83,7 +79,7 @@ async function addExpense() {
         }
 
         const expense = { amount, category, description, date };
-        budgetData.expenses.push(expense);
+        expenses.push(expense);
 
         await db.collection('budgets').doc(user.uid).update({
             expenses: firebase.firestore.FieldValue.arrayUnion(expense)
@@ -91,6 +87,7 @@ async function addExpense() {
 
         document.getElementById('expense-form').reset();
         updateBudgetDisplay();
+        updateExpensesDisplay();
         showSuccess('Expense added successfully!');
     } catch (error) {
         console.error('Error adding expense:', error);
@@ -112,9 +109,9 @@ async function handleSetBudget() {
             return;
         }
 
-        budgetData.totalBudget = amount;
+        currentBudget = amount;
         await db.collection('budgets').doc(user.uid).update({
-            totalBudget: amount
+            budget: amount
         });
 
         document.getElementById('budget-form').reset();
@@ -127,21 +124,14 @@ async function handleSetBudget() {
 }
 
 function updateBudgetDisplay() {
-    updateBudgetSummary();
-    updateExpensesList();
-    updateCategorySpending();
-    updateCharts();
-}
-
-function updateBudgetSummary() {
     const totalBudgetDisplay = document.getElementById('total-budget-display');
     const totalExpensesDisplay = document.getElementById('total-expenses');
     const remainingBudgetDisplay = document.getElementById('remaining-budget');
 
-    const totalExpenses = budgetData.expenses.reduce((sum, exp) => sum + exp.amount, 0);
-    const remainingBudget = budgetData.totalBudget - totalExpenses;
+    const totalExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const remainingBudget = currentBudget - totalExpenses;
 
-    if (totalBudgetDisplay) totalBudgetDisplay.textContent = formatCurrency(budgetData.totalBudget);
+    if (totalBudgetDisplay) totalBudgetDisplay.textContent = formatCurrency(currentBudget);
     if (totalExpensesDisplay) totalExpensesDisplay.textContent = formatCurrency(totalExpenses);
     if (remainingBudgetDisplay) remainingBudgetDisplay.textContent = formatCurrency(remainingBudget);
 }
@@ -169,39 +159,16 @@ function showSuccess(message) {
     setTimeout(() => alertDiv.remove(), 5000);
 }
 
-// Add event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    const expenseForm = document.getElementById('expense-form');
-    const budgetForm = document.getElementById('budget-form');
-
-    if (expenseForm) {
-        expenseForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            await addExpense();
-            expenseForm.reset();
-        });
-    }
-
-    if (budgetForm) {
-        budgetForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            await handleSetBudget();
-            budgetForm.reset();
-        });
-    }
-});
-
-// Update expenses list
-function updateExpensesList() {
+function updateExpensesDisplay() {
     const expenseList = document.getElementById('expense-list');
     if (!expenseList) return;
 
-    if (!budgetData.expenses.length) {
+    if (!expenses.length) {
         expenseList.innerHTML = '<p class="text-gray-500 text-center py-4">No expenses yet</p>';
         return;
     }
 
-    expenseList.innerHTML = budgetData.expenses
+    expenseList.innerHTML = expenses
         .sort((a, b) => new Date(b.date) - new Date(a.date))
         .map(expense => `
             <div class="flex justify-between items-center py-4 border-b last:border-0">
@@ -225,7 +192,6 @@ function updateExpensesList() {
         `).join('');
 }
 
-// Delete expense
 async function deleteExpense(date) {
     if (!confirm('Are you sure you want to delete this expense?')) return;
 
@@ -236,15 +202,16 @@ async function deleteExpense(date) {
     }
 
     try {
-        const expense = budgetData.expenses.find(e => e.date === date);
+        const expense = expenses.find(e => e.date === date);
         if (!expense) return;
 
         await db.collection('budgets').doc(user.uid).update({
             expenses: firebase.firestore.FieldValue.arrayRemove(expense)
         });
 
-        budgetData.expenses = budgetData.expenses.filter(e => e.date !== date);
+        expenses = expenses.filter(e => e.date !== date);
         updateBudgetDisplay();
+        updateExpensesDisplay();
         showSuccess('Expense deleted successfully!');
     } catch (error) {
         console.error('Error deleting expense:', error);
@@ -252,86 +219,24 @@ async function deleteExpense(date) {
     }
 }
 
-// Update category spending
-function updateCategorySpending() {
-    const categorySpending = {};
-    Object.keys(budgetCategories).forEach(category => {
-        categorySpending[category] = 0;
-    });
+// Add event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    const expenseForm = document.getElementById('expense-form');
+    const budgetForm = document.getElementById('budget-form');
 
-    budgetData.expenses.forEach(expense => {
-        if (categorySpending.hasOwnProperty(expense.category)) {
-            categorySpending[expense.category] += expense.amount;
-        }
-    });
-
-    const categoryContainer = document.getElementById('category-spending');
-    if (!categoryContainer) return;
-
-    categoryContainer.innerHTML = Object.entries(budgetCategories)
-        .map(([category, info]) => {
-            const spent = categorySpending[category];
-            const percentage = budgetData.totalBudget ? (spent / budgetData.totalBudget) * 100 : 0;
-            
-            return `
-                <div class="bg-white rounded-lg shadow p-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center">
-                            <i class="fas ${info.icon} text-2xl mr-3" style="color: ${info.color}"></i>
-                            <span class="font-medium">${info.name}</span>
-                        </div>
-                        <span class="text-sm font-medium">${formatCurrency(spent)}</span>
-                    </div>
-                    <div class="w-full bg-gray-200 rounded-full h-2">
-                        <div class="h-2 rounded-full transition-all duration-500" 
-                             style="width: ${Math.min(percentage, 100)}%; background-color: ${info.color}">
-                        </div>
-                    </div>
-                </div>
-            `;
-        })
-        .join('');
-}
-
-// Update charts
-function updateCharts() {
-    const ctx = document.getElementById('spending-chart');
-    if (!ctx) return;
-
-    const categorySpending = {};
-    Object.keys(budgetCategories).forEach(category => {
-        categorySpending[category] = 0;
-    });
-
-    budgetData.expenses.forEach(expense => {
-        if (categorySpending.hasOwnProperty(expense.category)) {
-            categorySpending[expense.category] += expense.amount;
-        }
-    });
-
-    const data = {
-        labels: Object.values(budgetCategories).map(cat => cat.name),
-        datasets: [{
-            data: Object.values(categorySpending),
-            backgroundColor: Object.values(budgetCategories).map(cat => cat.color),
-            borderWidth: 1
-        }]
-    };
-
-    if (doughnutChart) {
-        doughnutChart.destroy();
+    if (expenseForm) {
+        expenseForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await addExpense();
+            expenseForm.reset();
+        });
     }
 
-    doughnutChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: data,
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'right'
-                }
-            }
-        }
-    });
-}
+    if (budgetForm) {
+        budgetForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await handleSetBudget();
+            budgetForm.reset();
+        });
+    }
+});
