@@ -1,7 +1,6 @@
 // Journal map instance
 let journalMap = null;
 let journalMarkers = [];
-let journalEntries = [];
 
 // Get the API base URL based on environment
 const API_BASE_URL = window.location.hostname === 'm3libere28.github.io'
@@ -222,19 +221,6 @@ async function deleteJournalEntry(entryId) {
     }
 }
 
-// Export journal entries to JSON
-function exportJournal() {
-    const dataStr = JSON.stringify(journalEntries, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `journal-entries-${new Date().toISOString().split('T')[0]}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-}
-
 // Show success message
 function showSuccess(message) {
     const alert = document.getElementById('journal-alert');
@@ -267,73 +253,11 @@ window.addEventListener('authStateChanged', (event) => {
     }
 });
 
-// Journal functions
-async function loadJournalEntries() {
-    try {
-        if (!window.isAuthenticated) {
-            console.log('User not authenticated, skipping journal load');
-            return;
-        }
+// Journal management
+let journalEntries = [];
 
-        const token = await window.getAccessToken();
-        const response = await fetch(`${API_BASE_URL}/api/journal/entries`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.ok) {
-            const entries = await response.json();
-            displayJournalEntries(entries);
-        } else {
-            throw new Error('Failed to load journal entries');
-        }
-    } catch (error) {
-        console.error('Error loading journal entries:', error);
-    }
-}
-
-function displayJournalEntries(entries) {
-    const entriesContainer = document.getElementById('journal-entries');
-    if (!entriesContainer) return;
-
-    entriesContainer.innerHTML = entries.length ? '' : '<p class="text-gray-600">No entries yet. Start writing!</p>';
-    
-    entries.forEach(entry => {
-        const entryElement = document.createElement('div');
-        entryElement.className = 'journal-entry bg-white rounded-lg shadow-md p-6 mb-4';
-        entryElement.innerHTML = `
-            <h4 class="text-xl font-semibold mb-2">${entry.title}</h4>
-            <div class="text-gray-600 mb-3">${new Date(entry.date).toLocaleDateString()}</div>
-            <p class="text-gray-700">${entry.content}</p>
-        `;
-        entriesContainer.appendChild(entryElement);
-    });
-}
-
-function exportJournal() {
-    const journalEntries = document.querySelectorAll('.journal-entry');
-    const data = Array.from(journalEntries).map(entry => ({
-        title: entry.querySelector('h4').textContent,
-        date: entry.querySelector('.text-gray-600').textContent,
-        content: entry.querySelector('p').textContent
-    }));
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'journal_entries.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
-
-// Initialize journal
+// Initialize journal functionality
 document.addEventListener('DOMContentLoaded', () => {
-    // Set up event listeners for journal functionality
     const journalForm = document.getElementById('journal-form');
     if (journalForm) {
         journalForm.addEventListener('submit', async (e) => {
@@ -345,49 +269,59 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            const title = document.getElementById('entry-title').value;
-            const content = document.getElementById('entry-content').value;
+            const title = document.getElementById('entry-title')?.value;
+            const content = document.getElementById('entry-content')?.value;
             
             if (!title || !content) {
                 alert('Please fill in both title and content.');
                 return;
             }
             
-            try {
-                const token = await window.getAccessToken();
-                const response = await fetch('/api/journal', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ title, content })
-                });
-                
-                if (response.ok) {
-                    // Refresh journal entries
-                    loadJournalEntries();
-                    // Clear form
-                    journalForm.reset();
-                } else {
-                    throw new Error('Failed to save journal entry');
-                }
-            } catch (error) {
-                console.error('Error saving journal entry:', error);
-                alert('Failed to save journal entry. Please try again.');
-            }
+            const entry = {
+                title,
+                content,
+                date: new Date().toISOString()
+            };
+            
+            journalEntries.push(entry);
+            displayJournalEntries();
+            journalForm.reset();
         });
     }
-    
-    // Listen for auth state changes
-    window.addEventListener('authStateChanged', (e) => {
-        if (e.detail.isAuthenticated) {
-            loadJournalEntries();
-        }
-    });
-    
-    // Initial load if authenticated
-    if (window.isAuthenticated) {
-        loadJournalEntries();
-    }
 });
+
+function displayJournalEntries() {
+    const entriesContainer = document.getElementById('journal-entries');
+    if (!entriesContainer) return;
+
+    entriesContainer.innerHTML = journalEntries.length ? '' : '<p class="text-gray-600">No entries yet. Start writing!</p>';
+    
+    journalEntries.forEach(entry => {
+        const entryElement = document.createElement('div');
+        entryElement.className = 'journal-entry bg-white rounded-lg shadow-md p-6 mb-4';
+        entryElement.innerHTML = `
+            <h4 class="text-xl font-semibold mb-2">${entry.title}</h4>
+            <div class="text-gray-600 mb-3">${new Date(entry.date).toLocaleDateString()}</div>
+            <p class="text-gray-700">${entry.content}</p>
+        `;
+        entriesContainer.appendChild(entryElement);
+    });
+}
+
+// Export functionality
+window.exportJournal = function() {
+    if (journalEntries.length === 0) {
+        alert('No entries to export.');
+        return;
+    }
+    
+    const blob = new Blob([JSON.stringify(journalEntries, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'journal_entries.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+};

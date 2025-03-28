@@ -470,6 +470,32 @@ document.addEventListener('DOMContentLoaded', function() {
 window.addExpense = addExpense;
 window.initializeBudget = initializeBudget;
 
+// Budget management functions
+function calculateTotalCost(costs) {
+    return costs.reduce((total, cost) => total + parseFloat(cost) || 0, 0);
+}
+
+function setTotalBudget(amount) {
+    const budgetDisplay = document.getElementById('totalBudget');
+    if (budgetDisplay) {
+        budgetDisplay.textContent = amount.toFixed(2);
+    }
+}
+
+// Initialize budget functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const budgetForm = document.getElementById('budget-form');
+    if (budgetForm) {
+        budgetForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('budget-amount').value);
+            if (!isNaN(amount)) {
+                setTotalBudget(amount);
+            }
+        });
+    }
+});
+
 // Budget functions
 function calculateTotalCost() {
     // Get input values
