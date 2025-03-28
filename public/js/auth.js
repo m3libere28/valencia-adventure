@@ -44,12 +44,14 @@ let userProfile = null;
 async function initAuth() {
     try {
         console.log('Initializing Auth0 client...');
-        auth0Client = await createAuth0Client({
+        auth0Client = await auth0.createAuth0Client({
             domain: auth0Config.domain,
-            client_id: auth0Config.clientId,
-            redirect_uri: auth0Config.redirectUri,
-            audience: auth0Config.audience,
-            scope: auth0Config.scope
+            clientId: auth0Config.clientId,
+            authorizationParams: {
+                redirect_uri: auth0Config.redirectUri,
+                audience: auth0Config.audience,
+                scope: auth0Config.scope
+            }
         });
 
         console.log('Auth0 client initialized');
@@ -98,7 +100,9 @@ async function login() {
             return;
         }
         await auth0Client.loginWithRedirect({
-            redirect_uri: window.location.origin
+            authorizationParams: {
+                redirect_uri: window.location.origin
+            }
         });
         console.log('Redirecting to Auth0 login page...');
     } catch (error) {
@@ -115,7 +119,9 @@ async function logout() {
             return;
         }
         await auth0Client.logout({
-            returnTo: window.location.origin
+            logoutParams: {
+                returnTo: window.location.origin
+            }
         });
         console.log('Logged out successfully');
     } catch (error) {
