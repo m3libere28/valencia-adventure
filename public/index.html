@@ -22,6 +22,11 @@
     <script src="./js/apartments.js" defer></script>
     <script src="./js/housing.js" defer></script>
     
+    <!-- Auth0 SDK -->
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/weather.js"></script>
+    
     <script>
         tailwind.config = {
             theme: {
@@ -434,7 +439,7 @@
     <div id="main-content" class="opacity-0 transition-opacity duration-500">
     <!-- Navigation -->
     <nav class="bg-white shadow-md fixed w-full z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center">
                     <a href="#" class="flex items-center space-x-2">
@@ -456,6 +461,15 @@
                 <div class="md:hidden">
                     <button id="menu-toggle" class="text-gray-600 hover:text-blue-600">
                         <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+                <div class="flex items-center">
+                    <button id="loginBtn" onclick="login()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Login
+                    </button>
+                    <div id="userInfo" class="hidden"></div>
+                    <button id="logoutBtn" onclick="logout()" class="hidden bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-4">
+                        Logout
                     </button>
                 </div>
             </div>
@@ -1345,323 +1359,23 @@
     </script>
 
     <!-- Weather Section -->
-    <section id="weather" class="py-20 bg-white">
+    <section id="weather" class="py-10 bg-gradient-to-r from-blue-500 to-blue-600 text-white">
         <div class="max-w-7xl mx-auto px-4">
-            <h2 class="text-4xl font-bold text-center mb-2">Valencia Weather Guide</h2>
-            <p class="text-xl text-center text-gray-600 mb-16">Stay comfortable in Mediterranean climate</p>
-
-            <!-- Current Weather Card -->
-            <div class="weather-card bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-xl p-8 mb-12 text-white transform hover:scale-105 transition-transform duration-300 content-section">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="text-center md:text-left">
-                        <h3 class="text-2xl font-semibold mb-2">Current Weather</h3>
-                        <div class="flex items-center justify-center md:justify-start space-x-4">
-                            <i class="fas fa-sun text-6xl text-yellow-300"></i>
-                            <div>
-                                <span class="text-5xl font-bold" id="current-temp">25°C</span>
-                                <p class="text-lg opacity-90" id="weather-desc">Sunny</p>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 mt-6">
-                            <div>
-                                <i class="fas fa-wind text-2xl mb-1"></i>
-                                <p class="text-sm opacity-75">Wind</p>
-                                <p class="font-semibold" id="wind-speed">12 km/h</p>
-                            </div>
-                            <div>
-                                <i class="fas fa-tint text-2xl mb-1"></i>
-                                <p class="text-sm opacity-75">Humidity</p>
-                                <p class="font-semibold" id="humidity">65%</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="clothing-recommendation bg-white/10 rounded-lg p-6">
-                        <h4 class="text-xl font-semibold mb-4">What to Wear Today</h4>
-                        <ul class="space-y-2" id="clothing-list">
-                            <li class="flex items-center">
-                                <i class="fas fa-tshirt mr-3"></i>
-                                Light cotton shirt
-                            </li>
-                            <li class="flex items-center">
-                                <i class="fas fa-walking mr-3"></i>
-                                Shorts/skirts
-                            </li>
-                            <li class="flex items-center">
-                                <i class="fas fa-umbrella-beach mr-3"></i>
-                                Sun hat
-                            </li>
-                            <li class="flex items-center">
-                                <i class="fas fa-glasses mr-3"></i>
-                                Sunglasses
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Seasonal Weather Guide -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Spring -->
-                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300 content-section">
-                    <div class="text-center mb-4">
-                        <span class="text-4xl">🌸</span>
-                        <h3 class="text-xl font-semibold mt-2">Spring (Mar-May)</h3>
-                        <p class="text-gray-600">15-22°C</p>
-                    </div>
-                    <div class="space-y-3">
-                        <p class="text-sm text-gray-600 mb-4">Mild temperatures with occasional rain</p>
-                        <div class="clothing-items space-y-2">
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-jacket mr-2"></i>
-                                Light jacket
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-tshirt mr-2"></i>
-                                Long sleeve shirts
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-socks mr-2"></i>
-                                Light sweater
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-umbrella mr-2"></i>
-                                Umbrella
-                            </div>
+            <h2 class="text-3xl font-bold text-center mb-2">Valencia Weather</h2>
+            <div id="weatherDisplay" class="flex items-center justify-center min-h-[150px]">
+                <div class="animate-pulse flex space-x-4">
+                    <div class="rounded-full bg-blue-400 h-12 w-12"></div>
+                    <div class="flex-1 space-y-4 py-1">
+                        <div class="h-4 bg-blue-400 rounded w-3/4"></div>
+                        <div class="space-y-2">
+                            <div class="h-4 bg-blue-400 rounded"></div>
+                            <div class="h-4 bg-blue-400 rounded w-5/6"></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Summer -->
-                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300 content-section">
-                    <div class="text-center mb-4">
-                        <span class="text-4xl">☀️</span>
-                        <h3 class="text-xl font-semibold mt-2">Summer (Jun-Aug)</h3>
-                        <p class="text-gray-600">25-32°C</p>
-                    </div>
-                    <div class="space-y-3">
-                        <p class="text-sm text-gray-600 mb-4">Hot and sunny with high humidity</p>
-                        <div class="clothing-items space-y-2">
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-tshirt mr-2"></i>
-                                Light cotton shirts
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-walking mr-2"></i>
-                                Shorts/skirts
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-umbrella-beach mr-2"></i>
-                                Swimwear
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-hat-cowboy mr-2"></i>
-                                Sun protection
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Fall -->
-                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300 content-section">
-                    <div class="text-center mb-4">
-                        <span class="text-4xl">🍂</span>
-                        <h3 class="text-xl font-semibold mt-2">Fall (Sep-Nov)</h3>
-                        <p class="text-gray-600">18-25°C</p>
-                    </div>
-                    <div class="space-y-3">
-                        <p class="text-sm text-gray-600 mb-4">Pleasant with some rainfall</p>
-                        <div class="clothing-items space-y-2">
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-jacket mr-2"></i>
-                                Light layers
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-tshirt mr-2"></i>
-                                Long pants
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-socks mr-2"></i>
-                                Light scarf
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-umbrella mr-2"></i>
-                                Rain jacket
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Winter -->
-                <div class="season-card bg-white rounded-xl shadow-lg p-6 transform hover:scale-105 transition-transform duration-300 content-section">
-                    <div class="text-center mb-4">
-                        <span class="text-4xl">❄️</span>
-                        <h3 class="text-xl font-semibold mt-2">Winter (Dec-Feb)</h3>
-                        <p class="text-gray-600">10-15°C</p>
-                    </div>
-                    <div class="space-y-3">
-                        <p class="text-sm text-gray-600 mb-4">Mild winters with some cold days</p>
-                        <div class="clothing-items space-y-2">
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-jacket mr-2"></i>
-                                Warm jacket
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-scarf mr-2"></i>
-                                Scarf & gloves
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-socks mr-2"></i>
-                                Warm layers
-                            </div>
-                            <div class="flex items-center text-gray-700">
-                                <i class="fas fa-umbrella mr-2"></i>
-                                Waterproof shoes
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Weather Chart -->
-            <div class="mt-16 bg-white rounded-xl shadow-lg p-6 content-section">
-                <h3 class="text-2xl font-semibold mb-6 text-center">Annual Temperature Range</h3>
-                <canvas id="weather-chart" height="100"></canvas>
             </div>
         </div>
     </section>
-
-    <script>
-        // Weather Chart
-        document.addEventListener('DOMContentLoaded', function() {
-            const ctx = document.getElementById('weather-chart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                    datasets: [
-                        {
-                            label: 'Average High °C',
-                            data: [16, 17, 19, 21, 24, 28, 31, 31, 28, 24, 20, 17],
-                            borderColor: '#60A5FA',
-                            backgroundColor: 'rgba(96, 165, 250, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        },
-                        {
-                            label: 'Average Low °C',
-                            data: [7, 8, 9, 11, 14, 18, 21, 21, 18, 14, 10, 8],
-                            borderColor: '#F59E0B',
-                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                            fill: true,
-                            tension: 0.4
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        title: {
-                            display: true,
-                            text: 'Valencia Temperature Throughout the Year'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Temperature (°C)'
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Simulated real-time weather updates
-            function updateWeather() {
-                const now = new Date();
-                const hour = now.getHours();
-                
-                // Simulate temperature based on time of day
-                let temp = 20 + Math.sin((hour - 12) * Math.PI / 12) * 5;
-                temp = Math.round(temp * 10) / 10;
-                
-                // Update weather display
-                document.getElementById('current-temp').textContent = `${temp}°C`;
-                
-                // Update clothing recommendations based on temperature
-                const clothingList = document.getElementById('clothing-list');
-                clothingList.innerHTML = '';
-                
-                const recommendations = getClothingRecommendations(temp);
-                recommendations.forEach(item => {
-                    const li = document.createElement('li');
-                    li.className = 'flex items-center';
-                    li.innerHTML = `<i class="fas ${item.icon} mr-3"></i>${item.text}`;
-                    clothingList.appendChild(li);
-                });
-            }
-
-            function getClothingRecommendations(temp) {
-                if (temp >= 28) {
-                    return [
-                        { icon: 'fa-tshirt', text: 'Light cotton shirt' },
-                        { icon: 'fa-walking', text: 'Shorts/skirts' },
-                        { icon: 'fa-umbrella-beach', text: 'Sun hat' },
-                        { icon: 'fa-glasses', text: 'Sunglasses' }
-                    ];
-                } else if (temp >= 20) {
-                    return [
-                        { icon: 'fa-tshirt', text: 'Light shirt' },
-                        { icon: 'fa-walking', text: 'Light pants or shorts' },
-                        { icon: 'fa-jacket', text: 'Light jacket for evening' },
-                        { icon: 'fa-glasses', text: 'Sunglasses' }
-                    ];
-                } else if (temp >= 15) {
-                    return [
-                        { icon: 'fa-jacket', text: 'Light jacket' },
-                        { icon: 'fa-tshirt', text: 'Long sleeve shirt' },
-                        { icon: 'fa-walking', text: 'Long pants' },
-                        { icon: 'fa-scarf', text: 'Light scarf' }
-                    ];
-                } else {
-                    return [
-                        { icon: 'fa-jacket', text: 'Warm jacket' },
-                        { icon: 'fa-scarf', text: 'Scarf and gloves' },
-                        { icon: 'fa-socks', text: 'Warm socks' },
-                        { icon: 'fa-umbrella', text: 'Umbrella' }
-                    ];
-                }
-            }
-
-            // Update weather every 5 minutes
-            updateWeather();
-            setInterval(updateWeather, 300000);
-
-            // Add hover effects to season cards
-            const seasonCards = document.querySelectorAll('.season-card');
-            seasonCards.forEach(card => {
-                card.addEventListener('mouseenter', () => {
-                    gsap.to(card, {
-                        y: -10,
-                        duration: 0.3,
-                        ease: 'power2.out'
-                    });
-                });
-
-                card.addEventListener('mouseleave', () => {
-                    gsap.to(card, {
-                        y: 0,
-                        duration: 0.3,
-                        ease: 'power2.out'
-                    });
-                });
-            });
-        });
-    </script>
 
     <!-- Schools Section -->
     <section id="schools" class="py-20 bg-gray-50">
@@ -1755,7 +1469,7 @@
     <script src="./js/schools.js"></script>
 
     <!-- Budget Section -->
-    <section id="budget" class="py-20 bg-gray-50">
+    <section id="budget" class="py-20 bg-gray-50 protected-feature">
         <div class="max-w-7xl mx-auto px-4">
             <h2 class="text-4xl font-bold text-center mb-2">Budget Tracker</h2>
             <p class="text-xl text-center text-gray-600 mb-16">Keep track of your expenses in Valencia</p>
@@ -1891,7 +1605,7 @@
     </section>
 
     <!-- Family Journal Section -->
-    <section id="journal" class="py-20 bg-gray-50">
+    <section id="journal" class="py-20 bg-gray-50 protected-feature">
         <div class="max-w-7xl mx-auto px-4">
             <h2 class="text-4xl font-bold text-center mb-2">Family Journal</h2>
             <p class="text-xl text-center text-gray-600 mb-16">Capture our family adventures in Valencia</p>

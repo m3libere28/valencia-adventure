@@ -12,18 +12,112 @@ const budgetCategories = {
     other: { name: 'Other', icon: 'fa-ellipsis-h', color: '#9966FF' }
 };
 
-// Initialize budget data
-let budgetData = JSON.parse(localStorage.getItem('budgetData')) || {
-    totalBudget: 6000,
-    expenses: [],
-    categories: Object.fromEntries(
-        Object.entries(budgetCategories).map(([key, value]) => [key, { limit: 0, spent: 0 }])
-    )
-};
+// Budget management
+let budgetData = null;
 
-// Initialize charts
-let doughnutChart;
-let lineChart;
+async function initializeBudget() {
+    if (!isAuthenticated) return;
+    
+    try {
+        budgetData = await apiGet('budget');
+        updateBudgetDisplay();
+    } catch (error) {
+        console.error('Error initializing budget:', error);
+    }
+}
+
+async function addExpense(event) {
+    event.preventDefault();
+    
+    if (!isAuthenticated) {
+        alert('Please login to add expenses');
+        return;
+    }
+
+    const form = event.target;
+    const expense = {
+        description: form.description.value,
+        amount: parseFloat(form.amount.value),
+        category: form.category.value,
+        recurring: form.recurring.checked,
+        frequency: form.frequency.value
+    };
+
+    try {
+        budgetData = await apiPost('budget/expenses', expense);
+        updateBudgetDisplay();
+        form.reset();
+    } catch (error) {
+        console.error('Error adding expense:', error);
+        alert('Error adding expense. Please try again.');
+    }
+}
+
+function updateBudgetDisplay() {
+    if (!budgetData) return;
+
+    // Update total budget display
+    document.getElementById('totalBudget').textContent = 
+        budgetData.totalBudget.toLocaleString('en-US', { style: 'currency', currency: 'EUR' });
+
+    // Update expenses list
+    const expensesList = document.getElementById('expensesList');
+    expensesList.innerHTML = budgetData.expenses.map(expense => `
+        <div class="bg-white p-4 rounded-lg shadow mb-4">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h4 class="font-semibold">${expense.description}</h4>
+                    <p class="text-sm text-gray-600">${expense.category}</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold">${expense.amount.toLocaleString('en-US', { style: 'currency', currency: 'EUR' })}</p>
+                    <p class="text-xs text-gray-500">${new Date(expense.date).toLocaleDateString()}</p>
+                </div>
+            </div>
+            ${expense.recurring ? 
+                `<p class="text-xs text-blue-600 mt-2">Recurring ${expense.frequency}</p>` : ''}
+        </div>
+    `).join('');
+
+    // Update category breakdown
+    updateCategoryChart();
+}
+
+function updateCategoryChart() {
+    if (!budgetData) return;
+
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    const categoryTotals = {};
+    
+    budgetData.expenses.forEach(expense => {
+        categoryTotals[expense.category] = (categoryTotals[expense.category] || 0) + expense.amount;
+    });
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(categoryTotals),
+            datasets: [{
+                data: Object.values(categoryTotals),
+                backgroundColor: budgetData.categories.map(cat => cat.color || '#' + Math.floor(Math.random()*16777215).toString(16))
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+}
+
+// Initialize budget when auth state changes
+document.addEventListener('DOMContentLoaded', () => {
+    if (isAuthenticated) {
+        initializeBudget();
+    }
+});
+
+// Add event listeners
+document.getElementById('expenseForm')?.addEventListener('submit', addExpense);
 
 // Format currency
 function formatCurrency(amount) {
@@ -198,7 +292,7 @@ function getMonthlySpending() {
 }
 
 // Add expense
-function addExpense(e) {
+function addExpenseForm(e) {
     e.preventDefault();
     const form = e.target;
     const expense = {
@@ -337,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.setItem('budgetData', JSON.stringify(budgetData));
     
     // Initialize form handlers
-    document.getElementById('expense-form').addEventListener('submit', addExpense);
+    document.getElementById('expense-form').addEventListener('submit', addExpenseForm);
     document.getElementById('import-budget').addEventListener('change', importBudgetData);
     
     // Update all displays

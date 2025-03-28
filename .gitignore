@@ -1,4 +1,16 @@
-node_modules/
-.DS_Store
-*.log
+# dependencies
+/node_modules
+
+# environment variables
 .env
+
+# logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
