@@ -38,7 +38,6 @@ mongoose.connect(process.env.MONGODB_URI, {
 // Models
 const Apartment = require('./models/Apartment');
 const Budget = require('./models/Budget');
-const Weather = require('./models/Weather');
 
 // Weather API update function
 async function updateWeather() {
@@ -75,16 +74,10 @@ async function updateWeather() {
             timestamp: new Date()
         };
 
-        // Find and update or create new weather document
-        await Weather.findOneAndUpdate(
-            {}, // empty filter to match any document
-            weatherData,
-            { upsert: true, new: true, setDefaultsOnInsert: true }
-        );
-
-        console.log('Weather updated successfully');
+        return weatherData;
     } catch (error) {
         console.error('Error updating weather:', error);
+        throw error;
     }
 }
 
@@ -95,19 +88,8 @@ updateWeather(); // Initial update
 // Routes
 app.get('/api/weather', async (req, res) => {
     try {
-        let weather = await Weather.findOne().sort({ timestamp: -1 });
-        
-        // If no weather data exists or data is older than 1 hour, fetch new data
-        if (!weather || (new Date() - new Date(weather.timestamp)) > 3600000) {
-            await updateWeather();
-            weather = await Weather.findOne().sort({ timestamp: -1 });
-        }
-        
-        if (!weather) {
-            return res.status(500).json({ error: 'Unable to fetch weather data' });
-        }
-        
-        res.json(weather);
+        const weatherData = await updateWeather();
+        res.json(weatherData);
     } catch (error) {
         console.error('Error fetching weather:', error);
         res.status(500).json({ error: 'Error fetching weather data' });

@@ -6,36 +6,30 @@ function celsiusToFahrenheit(celsius) {
 // Helper function to make authenticated API calls
 async function apiGet(endpoint) {
     try {
-        // Get the base URL from the current window location
         const baseUrl = window.location.origin;
         const response = await fetch(`${baseUrl}/api/${endpoint}`);
-        if (!response.ok) throw new Error('Network response was not ok');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Network response was not ok');
+        }
         return await response.json();
     } catch (error) {
         console.error('API Error:', error);
-        return null;
+        throw error;
     }
 }
 
 // Weather data management
 async function updateWeatherDisplay() {
+    const weatherContent = document.getElementById('weather-content');
+    if (!weatherContent) {
+        console.error('Weather content element not found');
+        return;
+    }
+
     try {
-        const weatherContent = document.getElementById('weather-content');
-        if (!weatherContent) {
-            console.error('Weather content element not found');
-            return;
-        }
-
         const weatherData = await apiGet('weather');
-        if (!weatherData) {
-            weatherContent.innerHTML = `
-                <div class="text-center text-gray-600">
-                    <p>Unable to load weather data</p>
-                </div>
-            `;
-            return;
-        }
-
+        
         const tempC = Math.round(weatherData.temperature.current);
         const feelsLikeC = Math.round(weatherData.temperature.feels_like);
         const tempF = celsiusToFahrenheit(weatherData.temperature.current);
@@ -67,14 +61,17 @@ async function updateWeatherDisplay() {
         document.dispatchEvent(new CustomEvent('weatherUpdated', { detail: weatherData }));
     } catch (error) {
         console.error('Error updating weather:', error);
-        const weatherContent = document.getElementById('weather-content');
-        if (weatherContent) {
-            weatherContent.innerHTML = `
-                <div class="text-center text-gray-600">
-                    <p>Error loading weather data</p>
+        weatherContent.innerHTML = `
+            <div class="text-center p-4">
+                <div class="text-red-500 mb-2">
+                    <i class="fas fa-exclamation-circle text-2xl"></i>
                 </div>
-            `;
-        }
+                <p class="text-gray-600 mb-2">Unable to load weather data</p>
+                <button onclick="updateWeatherDisplay()" class="text-blue-500 hover:text-blue-600 text-sm">
+                    <i class="fas fa-sync-alt mr-1"></i> Try Again
+                </button>
+            </div>
+        `;
     }
 }
 
