@@ -255,3 +255,65 @@ window.addEventListener('authStateChanged', (event) => {
         document.getElementById('journal').style.display = 'none';
     }
 });
+
+// Journal functions
+function exportJournalEntries() {
+    const journalEntries = document.querySelectorAll('.journal-entry');
+    const data = Array.from(journalEntries).map(entry => ({
+        title: entry.querySelector('h4').textContent,
+        date: entry.querySelector('.text-gray-600').textContent,
+        content: entry.querySelector('p').textContent
+    }));
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'journal_entries.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+// Initialize journal
+document.addEventListener('DOMContentLoaded', () => {
+    // Set up event listeners for journal functionality
+    const journalForm = document.getElementById('journal-form');
+    if (journalForm) {
+        journalForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const title = document.getElementById('entry-title').value;
+            const content = document.getElementById('entry-content').value;
+            
+            try {
+                const token = await window.getAccessToken();
+                const response = await fetch('/api/journal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ title, content })
+                });
+                
+                if (response.ok) {
+                    // Refresh journal entries
+                    loadJournalEntries();
+                    // Clear form
+                    journalForm.reset();
+                } else {
+                    throw new Error('Failed to save journal entry');
+                }
+            } catch (error) {
+                console.error('Error saving journal entry:', error);
+                alert('Failed to save journal entry. Please try again.');
+            }
+        });
+    }
+    
+    // Initial load of journal entries
+    loadJournalEntries();
+});

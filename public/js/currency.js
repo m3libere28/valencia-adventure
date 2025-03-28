@@ -1,61 +1,47 @@
-// Currency exchange functionality
-async function getExchangeRate() {
-    const amount = document.getElementById('amount').value;
-    const fromCurrency = document.getElementById('fromCurrency').value;
-    const toCurrency = document.getElementById('toCurrency').value;
-
-    try {
-        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${fromCurrency}`);
-        const data = await response.json();
-        
-        if (response.ok) {
-            const rate = data.rates[toCurrency];
-            const result = (amount * rate).toFixed(2);
-            
-            document.getElementById('result').innerHTML = `
-                <div class="text-2xl font-semibold text-gray-900 mb-2">
-                    ${amount} ${fromCurrency} = ${result} ${toCurrency}
-                </div>
-                <div class="text-sm text-gray-600">
-                    1 ${fromCurrency} = ${rate.toFixed(4)} ${toCurrency}
-                </div>
-                <div class="text-xs text-gray-500 mt-2">
-                    Last updated: ${new Date(data.time_last_updated * 1000).toLocaleString()}
-                </div>
-            `;
-        } else {
-            throw new Error('Failed to fetch exchange rate');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        document.getElementById('result').innerHTML = `
-            <div class="text-red-600">
-                Unable to fetch exchange rate. Please try again later.
-            </div>
-        `;
-    }
-}
-
-// Swap currencies
+// Currency conversion functions
 function swapCurrencies() {
-    const fromCurrency = document.getElementById('fromCurrency');
-    const toCurrency = document.getElementById('toCurrency');
-    [fromCurrency.value, toCurrency.value] = [toCurrency.value, fromCurrency.value];
-    getExchangeRate();
+    const fromSelect = document.getElementById('from-currency');
+    const toSelect = document.getElementById('to-currency');
+    const tempValue = fromSelect.value;
+    
+    fromSelect.value = toSelect.value;
+    toSelect.value = tempValue;
+    
+    // Trigger conversion with new values
+    convertCurrency();
 }
 
-// Initialize when document is loaded
+function convertCurrency() {
+    const amount = parseFloat(document.getElementById('amount').value);
+    const fromCurrency = document.getElementById('from-currency').value;
+    const toCurrency = document.getElementById('to-currency').value;
+    
+    if (isNaN(amount)) {
+        document.getElementById('result').textContent = 'Please enter a valid amount';
+        return;
+    }
+    
+    // Example fixed rates (replace with actual API call)
+    const rates = {
+        EUR: 1,
+        USD: 1.08,
+        GBP: 0.85,
+        JPY: 163.45,
+        AUD: 1.65,
+        CAD: 1.47,
+        CHF: 0.98,
+        CNY: 7.82
+    };
+    
+    const result = (amount / rates[fromCurrency]) * rates[toCurrency];
+    document.getElementById('result').textContent = 
+        `${amount.toFixed(2)} ${fromCurrency} = ${result.toFixed(2)} ${toCurrency}`;
+}
+
+// Initialize currency converter
 document.addEventListener('DOMContentLoaded', () => {
-    // Add event listeners to inputs
-    document.getElementById('amount').addEventListener('input', getExchangeRate);
-    document.getElementById('fromCurrency').addEventListener('change', getExchangeRate);
-    document.getElementById('toCurrency').addEventListener('change', getExchangeRate);
-    
-    // Set initial values
-    document.getElementById('amount').value = '1';
-    document.getElementById('fromCurrency').value = 'USD';
-    document.getElementById('toCurrency').value = 'EUR';
-    
-    // Get initial exchange rate
-    getExchangeRate();
+    // Set up event listeners for currency conversion
+    document.getElementById('amount').addEventListener('input', convertCurrency);
+    document.getElementById('from-currency').addEventListener('change', convertCurrency);
+    document.getElementById('to-currency').addEventListener('change', convertCurrency);
 });

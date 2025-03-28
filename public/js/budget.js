@@ -389,23 +389,28 @@ function editCategoryLimit(category) {
 
 // Set total budget
 function setTotalBudget() {
-    const newBudget = parseFloat(prompt('Enter your total monthly budget:', budgetData.totalBudget));
+    const currentBudget = document.getElementById('total-budget-amount').textContent;
+    const newBudget = prompt('Enter new total budget (in EUR):', currentBudget.replace('€', ''));
     
-    if (!isNaN(newBudget) && newBudget >= 0) {
-        budgetData.totalBudget = newBudget;
-        localStorage.setItem('budgetData', JSON.stringify(budgetData));
-        updateBudgetSummary();
+    if (newBudget !== null && !isNaN(newBudget)) {
+        document.getElementById('total-budget-amount').textContent = `€${parseFloat(newBudget).toFixed(2)}`;
+        updateBudgetProgress();
     }
 }
 
 // Export budget data
 function exportBudgetData() {
-    const dataStr = JSON.stringify(budgetData, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
+    const data = {
+        totalBudget: document.getElementById('total-budget-amount').textContent,
+        expenses: [] // Add your expense data here
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
+    
     const a = document.createElement('a');
     a.href = url;
-    a.download = `budget-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = 'budget_data.json';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -464,3 +469,64 @@ document.addEventListener('DOMContentLoaded', function() {
 // Export functions for use in other modules
 window.addExpense = addExpense;
 window.initializeBudget = initializeBudget;
+
+// Budget functions
+function calculateTotalCost() {
+    // Get input values
+    const rent = parseFloat(document.getElementById('rent').value) || 0;
+    const utilities = parseFloat(document.getElementById('utilities').value) || 0;
+    const includeUtilities = document.getElementById('include-utilities').checked;
+    
+    // Calculate total
+    const total = rent + (includeUtilities ? utilities : 0);
+    
+    // Update result
+    const resultElement = document.getElementById('total-cost-result');
+    resultElement.textContent = `€${total.toFixed(2)}`;
+    resultElement.classList.remove('hidden');
+}
+
+function setTotalBudget() {
+    const currentBudget = document.getElementById('total-budget-amount').textContent;
+    const newBudget = prompt('Enter new total budget (in EUR):', currentBudget.replace('€', ''));
+    
+    if (newBudget !== null && !isNaN(newBudget)) {
+        document.getElementById('total-budget-amount').textContent = `€${parseFloat(newBudget).toFixed(2)}`;
+        updateBudgetProgress();
+    }
+}
+
+function exportBudgetData() {
+    const data = {
+        totalBudget: document.getElementById('total-budget-amount').textContent,
+        expenses: [] // Add your expense data here
+    };
+    
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'budget_data.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function updateBudgetProgress() {
+    const totalBudget = parseFloat(document.getElementById('total-budget-amount').textContent.replace('€', ''));
+    const spentAmount = 2500; // Example value, replace with actual spent amount
+    
+    const progressBar = document.getElementById('budget-progress');
+    const progressPercentage = Math.min((spentAmount / totalBudget) * 100, 100);
+    progressBar.style.width = `${progressPercentage}%`;
+    
+    const remainingAmount = totalBudget - spentAmount;
+    document.getElementById('remaining-budget').textContent = `€${remainingAmount.toFixed(2)}`;
+}
+
+// Initialize budget tracking
+document.addEventListener('DOMContentLoaded', () => {
+    updateBudgetProgress();
+});
