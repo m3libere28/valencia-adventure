@@ -1,7 +1,9 @@
 // Helper function to make authenticated API calls
 async function apiGet(endpoint) {
     try {
-        const response = await fetch(`/api/${endpoint}`);
+        // Get the base URL from the current window location
+        const baseUrl = window.location.origin;
+        const response = await fetch(`${baseUrl}/api/${endpoint}`);
         if (!response.ok) throw new Error('Network response was not ok');
         return await response.json();
     } catch (error) {
@@ -13,11 +15,21 @@ async function apiGet(endpoint) {
 // Weather data management
 async function updateWeatherDisplay() {
     try {
-        const weatherData = await apiGet('weather');
-        if (!weatherData) return;
-
         const weatherContent = document.getElementById('weather-content');
-        if (!weatherContent) return;
+        if (!weatherContent) {
+            console.error('Weather content element not found');
+            return;
+        }
+
+        const weatherData = await apiGet('weather');
+        if (!weatherData) {
+            weatherContent.innerHTML = `
+                <div class="text-center text-gray-600">
+                    <p>Unable to load weather data</p>
+                </div>
+            `;
+            return;
+        }
 
         const temperature = Math.round(weatherData.temperature.current);
         const feelsLike = Math.round(weatherData.temperature.feels_like);
@@ -41,6 +53,14 @@ async function updateWeatherDisplay() {
         `;
     } catch (error) {
         console.error('Error updating weather:', error);
+        const weatherContent = document.getElementById('weather-content');
+        if (weatherContent) {
+            weatherContent.innerHTML = `
+                <div class="text-center text-gray-600">
+                    <p>Error loading weather data</p>
+                </div>
+            `;
+        }
     }
 }
 

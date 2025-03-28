@@ -19,7 +19,7 @@ const config = {
     baseURL: process.env.BASE_URL || 'http://localhost:3001',
     clientID: process.env.AUTH0_CLIENT_ID,
     issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}`,
-    secret: 'dK8xJ#mP9$vL2@nQ5*wR7&yT4^hB1!cF3gN6'
+    secret: process.env.AUTH0_SECRET
 };
 
 // auth router attaches /login, /logout, and /callback routes to the baseURL
@@ -46,9 +46,18 @@ async function updateWeather() {
         const response = await fetch(
             `https://api.openweathermap.org/data/2.5/weather?q=Valencia,ES&units=metric&appid=${process.env.WEATHER_API_KEY}`
         );
+        
+        if (!response.ok) {
+            throw new Error('Weather API response was not ok');
+        }
+        
         const data = await response.json();
+        
+        if (!data || !data.main || !data.weather || !data.weather[0]) {
+            throw new Error('Invalid weather data format');
+        }
 
-        const weather = new Weather({
+        const weatherData = {
             city: 'Valencia',
             temperature: {
                 current: data.main.temp,
@@ -62,10 +71,17 @@ async function updateWeather() {
             wind: {
                 speed: data.wind.speed,
                 direction: data.wind.deg
-            }
-        });
+            },
+            timestamp: new Date()
+        };
 
-        await weather.save();
+        // Find and update or create new weather document
+        await Weather.findOneAndUpdate(
+            {}, // empty filter to match any document
+            weatherData,
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
         console.log('Weather updated successfully');
     } catch (error) {
         console.error('Error updating weather:', error);
@@ -80,8 +96,19 @@ updateWeather(); // Initial update
 app.get('/api/weather', async (req, res) => {
     try {
         const weather = await Weather.findOne().sort({ timestamp: -1 });
-        res.json(weather);
+        if (!weather) {
+            // If no weather data exists, fetch it now
+            await updateWeather();
+            const newWeather = await Weather.findOne().sort({ timestamp: -1 });
+            if (!newWeather) {
+                throw new Error('Could not fetch weather data');
+            }
+            res.json(newWeather);
+        } else {
+            res.json(weather);
+        }
     } catch (error) {
+        console.error('Error fetching weather:', error);
         res.status(500).json({ error: 'Error fetching weather data' });
     }
 });
