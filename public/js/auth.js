@@ -87,8 +87,8 @@ async function initAuth() {
     }
 }
 
-// Login function
-async function login() {
+// Make auth functions globally available
+window.login = async function() {
     if (!auth0Client) {
         console.error('Auth0 client not initialized');
         showError('Authentication system not ready. Please refresh the page.');
@@ -106,10 +106,9 @@ async function login() {
         console.error('Login error:', err);
         showError('Failed to start login process. Please try again.');
     }
-}
+};
 
-// Logout function
-async function logout() {
+window.logout = async function() {
     try {
         console.log('Starting logout process...');
         await auth0Client.logout({
@@ -121,7 +120,7 @@ async function logout() {
         console.error('Logout error:', err);
         showError('Failed to logout. Please try again.');
     }
-}
+};
 
 // Update UI based on authentication state
 function updateUI() {
@@ -214,8 +213,3 @@ document.addEventListener('DOMContentLoaded', () => {
         showError('Failed to initialize authentication system.');
     });
 });
-
-// Make functions globally available
-window.login = login;
-window.logout = logout;
-window.getAccessToken = getAccessToken;
