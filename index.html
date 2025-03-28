@@ -19,6 +19,7 @@
     <script src="./js/schools.js" defer></script>
     <script src="./js/budget.js" defer></script>
     <script src="./js/journal.js" defer></script>
+    <script src="./js/apartments.js" defer></script>
     
     <script>
         tailwind.config = {
@@ -658,7 +659,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
                     <div class="relative group">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Neighborhood</label>
-                        <select class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 group-hover:border-blue-400 transition-all">
+                        <select id="neighborhood-filter" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 group-hover:border-blue-400 transition-all">
                             <option>All Areas</option>
                             <option>Ciutat Vella</option>
                             <option>L'Eixample</option>
@@ -671,7 +672,7 @@
 
                     <div class="relative group">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Price Range</label>
-                        <select class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 group-hover:border-blue-400 transition-all">
+                        <select id="price-filter" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 group-hover:border-blue-400 transition-all">
                             <option>Any Price</option>
                             <option>Up to €800</option>
                             <option>€800 - €1,200</option>
@@ -683,7 +684,7 @@
 
                     <div class="relative group">
                         <label class="block text-sm font-medium text-gray-700 mb-2">Features</label>
-                        <select class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 group-hover:border-blue-400 transition-all">
+                        <select id="features-filter" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 group-hover:border-blue-400 transition-all">
                             <option>Must Have</option>
                             <option>Balcony</option>
                             <option>Air Conditioning</option>
@@ -702,51 +703,8 @@
             </div>
 
             <!-- Results Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Sample Apartment Card -->
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div class="relative">
-                        <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80" 
-                             class="w-full h-48 object-cover" alt="Apartment">
-                        <div class="absolute top-4 right-4 bg-white rounded-full px-3 py-1 text-sm font-semibold text-blue-600">
-                            €1,200/month
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <h3 class="text-lg font-semibold mb-2">Modern Apartment in Russafa</h3>
-                        <div class="flex items-center text-gray-600 mb-4">
-                            <i class="fas fa-map-marker-alt mr-2"></i>
-                            <span>Russafa, Valencia</span>
-                        </div>
-                        <div class="grid grid-cols-3 gap-4 mb-4">
-                            <div class="text-center">
-                                <i class="fas fa-bed text-blue-500 mb-1"></i>
-                                <p class="text-sm text-gray-600">2 Beds</p>
-                            </div>
-                            <div class="text-center">
-                                <i class="fas fa-bath text-blue-500 mb-1"></i>
-                                <p class="text-sm text-gray-600">1 Bath</p>
-                            </div>
-                            <div class="text-center">
-                                <i class="fas fa-ruler-combined text-blue-500 mb-1"></i>
-                                <p class="text-sm text-gray-600">75m²</p>
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs">Balcony</span>
-                            <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs">AC</span>
-                            <span class="px-2 py-1 bg-blue-100 text-blue-600 rounded-full text-xs">Elevator</span>
-                        </div>
-                    </div>
-                    <div class="p-6 pt-0">
-                        <button class="w-full py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
-                                     hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
-                            View Details
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Add more sample cards here -->
+            <div id="apartment-results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Apartment cards will be added here dynamically -->
             </div>
 
             <!-- Interactive Map -->
