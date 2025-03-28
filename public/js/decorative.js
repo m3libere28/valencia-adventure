@@ -61,53 +61,60 @@ function addAnimationStyles() {
             0%, 100% { transform: translate(0, 0) rotate(0deg); }
             50% { transform: translate(0, -20px) rotate(5deg); }
         }
+        
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+
+        .slide-up {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     `;
     document.head.appendChild(styleSheet);
+}
+
+// Add animation classes to elements
+function animateElements() {
+    // Animate hero content
+    const heroContent = document.querySelector('.hero-content');
+    if (heroContent) {
+        heroContent.classList.add('fade-in');
+    }
+
+    // Animate timeline items with delay
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    timelineItems.forEach((item, index) => {
+        item.style.animationDelay = `${index * 0.2}s`;
+        item.classList.add('slide-up');
+    });
+
+    // Animate feature cards with delay
+    const featureCards = document.querySelectorAll('.feature-card');
+    featureCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.15}s`;
+        card.classList.add('slide-up');
+    });
 }
 
 // Initialize decorative elements
 document.addEventListener('DOMContentLoaded', () => {
     addAnimationStyles();
     createFloatingElements();
-    
-    // Check if GSAP is available
-    if (typeof gsap !== 'undefined') {
-        // Animate hero section
-        gsap.from('.hero-content', {
-            duration: 1,
-            y: 50,
-            opacity: 0,
-            ease: 'power3.out'
-        });
-
-        // Animate timeline items
-        gsap.from('.timeline-item', {
-            duration: 0.8,
-            y: 30,
-            opacity: 0,
-            stagger: 0.2,
-            ease: 'power2.out',
-            scrollTrigger: {
-                trigger: '.timeline',
-                start: 'top center+=100',
-                toggleActions: 'play none none reverse'
-            }
-        });
-
-        // Animate features
-        gsap.from('.feature-card', {
-            duration: 0.6,
-            y: 40,
-            opacity: 0,
-            stagger: 0.15,
-            ease: 'power2.out',
-            scrollTrigger: {
-                trigger: '.features',
-                start: 'top center+=100',
-                toggleActions: 'play none none reverse'
-            }
-        });
-    } else {
-        console.log('GSAP not loaded, skipping animations');
-    }
+    animateElements();
 });

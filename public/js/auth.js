@@ -1,14 +1,15 @@
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyBXF_Qv2YKJwsQVFpFJqLRt_QGLbxYXBWo",
+    apiKey: "AIzaSyAzA0ldOdmvjXFrXYtQtt1q49VC41STcqY",
     authDomain: "valencia-adventure.firebaseapp.com",
     projectId: "valencia-adventure",
     storageBucket: "valencia-adventure.appspot.com",
-    messagingSenderId: "1098360410233",
-    appId: "1:1098360410233:web:9a2f1a9b9f9b9f9b9f9b9f"
+    messagingSenderId: "778644270783",
+    appId: "1:778644270783:web:83a34b7c80f176d4c8600a",
+    measurementId: "G-4V1L50EECY"
 };
 
-// Initialize Firebase before any other Firebase services
+// Initialize Firebase
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
@@ -16,7 +17,7 @@ if (!firebase.apps.length) {
 const auth = firebase.auth();
 const provider = new firebase.auth.GoogleAuthProvider();
 
-// Global auth state
+// Initialize auth state
 let isAuthenticated = false;
 let currentUser = null;
 
@@ -71,6 +72,8 @@ auth.onAuthStateChanged((user) => {
         // Update buttons
         if (loginButton) loginButton.classList.add('hidden');
         if (logoutButton) logoutButton.classList.remove('hidden');
+
+        console.log('User authenticated:', user.displayName);
     } else {
         // Hide protected elements
         protectedElements.forEach(el => el.classList.add('hidden'));
@@ -82,6 +85,8 @@ auth.onAuthStateChanged((user) => {
         // Update buttons
         if (loginButton) loginButton.classList.remove('hidden');
         if (logoutButton) logoutButton.classList.add('hidden');
+
+        console.log('User signed out');
     }
 
     // Dispatch event for other modules
@@ -98,17 +103,17 @@ window.currentUser = currentUser;
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing Firebase Auth...');
+    console.log('Auth module loaded');
     
     // Set up event listeners for login/logout buttons
     const loginBtn = document.getElementById('login-button');
     const logoutBtn = document.getElementById('logout-button');
     
     if (loginBtn) {
-        loginBtn.addEventListener('click', window.login);
+        loginBtn.addEventListener('click', login);
     }
     
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', window.logout);
+        logoutBtn.addEventListener('click', logout);
     }
 });
