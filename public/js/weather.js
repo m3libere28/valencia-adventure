@@ -51,6 +51,9 @@ async function updateWeatherDisplay() {
                 </div>
             </div>
         `;
+
+        // Emit event for clothing recommendations
+        document.dispatchEvent(new CustomEvent('weatherUpdated', { detail: weatherData }));
     } catch (error) {
         console.error('Error updating weather:', error);
         const weatherContent = document.getElementById('weather-content');

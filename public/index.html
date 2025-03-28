@@ -24,6 +24,7 @@
     <script src="./js/apartments.js" defer></script>
     <script src="./js/housing.js" defer></script>
     <script src="./js/currency.js" defer></script>
+    <script src="./js/clothing.js" defer></script>
     
     <!-- Auth0 SDK -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
@@ -1364,14 +1365,36 @@
         <div class="max-w-7xl mx-auto px-4">
             <h2 class="text-4xl font-bold text-center mb-2">Valencia Weather</h2>
             <p class="text-xl text-center text-gray-600 mb-8">Real-time weather updates</p>
-            <div class="bg-white rounded-xl shadow-lg p-8 max-w-2xl mx-auto transform hover:scale-105 transition-transform duration-300">
-                <div id="weather-content" class="flex justify-center items-center min-h-[200px]">
-                    <div class="animate-pulse flex space-x-4 items-center">
-                        <div class="rounded-full bg-gray-200 h-16 w-16"></div>
-                        <div class="space-y-3">
-                            <div class="h-4 bg-gray-200 rounded w-24"></div>
-                            <div class="h-4 bg-gray-200 rounded w-32"></div>
-                            <div class="h-4 bg-gray-200 rounded w-28"></div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Weather Widget -->
+                <div class="bg-white rounded-xl shadow-lg p-8 transform hover:scale-105 transition-transform duration-300">
+                    <div id="weather-content" class="flex justify-center items-center min-h-[200px]">
+                        <div class="animate-pulse flex space-x-4 items-center">
+                            <div class="rounded-full bg-gray-200 h-16 w-16"></div>
+                            <div class="space-y-3">
+                                <div class="h-4 bg-gray-200 rounded w-24"></div>
+                                <div class="h-4 bg-gray-200 rounded w-32"></div>
+                                <div class="h-4 bg-gray-200 rounded w-28"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clothing Recommendations -->
+                <div class="bg-white rounded-xl shadow-lg p-8 transform hover:scale-105 transition-transform duration-300">
+                    <div id="clothing-content" class="min-h-[200px]">
+                        <div class="animate-pulse flex flex-col space-y-4">
+                            <div class="space-y-3">
+                                <div class="h-6 bg-gray-200 rounded w-48"></div>
+                                <div class="h-4 bg-gray-200 rounded w-64"></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="h-24 bg-gray-200 rounded"></div>
+                                <div class="h-24 bg-gray-200 rounded"></div>
+                                <div class="h-24 bg-gray-200 rounded"></div>
+                                <div class="h-24 bg-gray-200 rounded"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
