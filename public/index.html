@@ -1349,105 +1349,43 @@
         document.getElementById('swap-currencies').addEventListener('click', swapCurrencies);
     </script>
 
-    <!-- Family Journal Section -->
-    <section id="journal" class="py-20 bg-gray-50 protected-feature">
-        <div class="max-w-7xl mx-auto px-4">
-            <h2 class="text-4xl font-bold text-center mb-2">Family Journal</h2>
-            <p class="text-xl text-center text-gray-600 mb-16">Capture our family adventures in Valencia</p>
-
-            <!-- Add Entry Form -->
-            <div class="bg-white rounded-xl shadow-lg p-8 mb-12 content-section">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-semibold">Add New Entry</h3>
-                    <div class="space-x-4">
-                        <button id="export-journal" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
-                            <i class="fas fa-download mr-2"></i>Export Journal
-                        </button>
-                        <label class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer">
-                            <i class="fas fa-upload mr-2"></i>Import Journal
-                            <input type="file" id="import-journal" accept=".json" class="hidden">
-                        </label>
-                    </div>
+    <!-- Journal Section -->
+    <section id="journal-section" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-8">Family Journal</h2>
+            
+            <!-- Journal Form -->
+            <form id="journal-form" class="mb-8 bg-white rounded-lg shadow-md p-6 protected-feature hidden">
+                <div class="mb-4">
+                    <label for="entry-title" class="block text-gray-700 font-medium mb-2">Title</label>
+                    <input type="text" id="entry-title" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                 </div>
-                <form id="journal-form" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                            <input type="date" name="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                            <input type="text" name="title" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Location Name</label>
-                            <input type="text" name="location-name" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Location (Click on map)</label>
-                            <input type="text" name="location" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required readonly>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Weather</label>
-                            <select name="weather" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                                <option value="Sunny">Sunny</option>
-                                <option value="Cloudy">Cloudy</option>
-                                <option value="Rainy">Rainy</option>
-                                <option value="Stormy">Stormy</option>
-                                <option value="Snowy">Snowy</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Mood</label>
-                            <select name="mood" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                                <option value="Happy">Happy</option>
-                                <option value="Excited">Excited</option>
-                                <option value="Relaxed">Relaxed</option>
-                                <option value="Tired">Tired</option>
-                                <option value="Sad">Sad</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Photos</label>
-                        <input type="file" name="photos" multiple accept="image/*" class="w-full text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                        <textarea name="notes" rows="4" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
-                        <input type="text" name="tags" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="family, sightseeing, food">
-                    </div>
-                    <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                        Add Entry
+                <div class="mb-4">
+                    <label for="entry-content" class="block text-gray-700 font-medium mb-2">Content</label>
+                    <textarea id="entry-content" rows="4" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
+                </div>
+                <div class="flex justify-between items-center">
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Save Entry</button>
+                    <button type="button" onclick="exportJournal()" class="text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-download mr-1"></i> Export Entries
                     </button>
-                </form>
+                </div>
+            </form>
+
+            <!-- Login Prompt -->
+            <div id="login-prompt" class="text-center py-8 bg-white rounded-lg shadow-md">
+                <p class="text-gray-600 mb-4">Please log in to view and add journal entries.</p>
+                <button onclick="login()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-sign-in-alt mr-2"></i> Log In
+                </button>
             </div>
 
-            <!-- Map and Entries Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Map -->
-                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
-                    <h3 class="text-2xl font-semibold mb-4">Our Adventures Map</h3>
-                    <div id="journal-map" class="h-[500px] rounded-lg"></div>
-                </div>
-
-                <!-- Journal Entries -->
-                <div class="space-y-6">
-                    <h3 class="text-2xl font-semibold">Recent Entries</h3>
-                    <div id="journal-entries" class="space-y-6 max-h-[500px] overflow-y-auto pr-4">
-                        <!-- Entries will be added dynamically -->
-                    </div>
-                </div>
+            <!-- Journal Entries -->
+            <div id="journal-entries" class="space-y-6 protected-feature hidden">
+                <!-- Entries will be added here dynamically -->
             </div>
         </div>
     </section>
-
-    <script>
-        document.getElementById('export-journal').addEventListener('click', exportJournal);
-    </script>
 
     <!-- Family Adventure Section -->
     <section id="about" class="py-20 bg-gradient-to-b from-blue-50 to-purple-50">

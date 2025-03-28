@@ -46,6 +46,7 @@ async function loadJournalEntries() {
     }
 
     try {
+        console.log('Loading journal entries...');
         const snapshot = await db.collection('users')
             .doc(window.currentUser.uid)
             .collection('journal')
@@ -60,6 +61,7 @@ async function loadJournalEntries() {
             });
         });
 
+        console.log(`Loaded ${entries.length} entries`);
         displayJournalEntries(entries);
     } catch (error) {
         console.error('Error loading journal entries:', error);
@@ -69,8 +71,12 @@ async function loadJournalEntries() {
 
 function displayJournalEntries(entries) {
     const entriesContainer = document.getElementById('journal-entries');
-    if (!entriesContainer) return;
+    if (!entriesContainer) {
+        console.error('Journal entries container not found');
+        return;
+    }
 
+    console.log('Displaying journal entries');
     entriesContainer.innerHTML = entries.length ? '' : '<p class="text-gray-600">No entries yet. Start writing!</p>';
     
     entries.forEach(entry => {
@@ -156,12 +162,14 @@ window.deleteJournalEntry = async function(entryId) {
     }
 
     try {
+        console.log('Deleting journal entry:', entryId);
         await db.collection('users')
             .doc(window.currentUser.uid)
             .collection('journal')
             .doc(entryId)
             .delete();
 
+        console.log('Entry deleted successfully');
         // Refresh entries
         loadJournalEntries();
         alert('Entry deleted successfully!');
@@ -179,6 +187,7 @@ window.exportJournal = async function() {
     }
 
     try {
+        console.log('Exporting journal entries...');
         const snapshot = await db.collection('users')
             .doc(window.currentUser.uid)
             .collection('journal')
@@ -201,6 +210,7 @@ window.exportJournal = async function() {
             return;
         }
 
+        console.log(`Exporting ${entries.length} entries`);
         const blob = new Blob([JSON.stringify(entries, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -232,8 +242,18 @@ window.addEventListener('authStateChanged', (event) => {
 
 // Initialize journal functionality
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Journal module loaded');
+
+    const journalSection = document.getElementById('journal-section');
+    if (!journalSection) {
+        console.log('Journal section not found, skipping initialization');
+        return;
+    }
+
+    // Initialize the form
     const journalForm = document.getElementById('journal-form');
     if (journalForm) {
+        console.log('Setting up journal form');
         journalForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -243,8 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            const title = document.getElementById('entry-title')?.value;
-            const content = document.getElementById('entry-content')?.value;
+            const title = document.getElementById('entry-title')?.value?.trim();
+            const content = document.getElementById('entry-content')?.value?.trim();
             
             if (!title || !content) {
                 alert('Please fill in both title and content.');
@@ -252,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             try {
+                console.log('Saving journal entry...');
                 // Add entry to Firestore
                 await db.collection('users')
                     .doc(window.currentUser.uid)
@@ -263,6 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                 
+                console.log('Journal entry saved successfully');
                 // Clear form
                 journalForm.reset();
                 
@@ -280,6 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen for auth state changes
     window.addEventListener('authStateChanged', (e) => {
+        console.log('Auth state changed:', e.detail);
         if (e.detail.isAuthenticated) {
             loadJournalEntries();
         } else {
@@ -290,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial load if authenticated
     if (window.isAuthenticated) {
+        console.log('User already authenticated, loading entries');
         loadJournalEntries();
     }
 });
