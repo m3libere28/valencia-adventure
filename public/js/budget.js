@@ -26,9 +26,8 @@ let lineChart = null;
 let categoryChart = null;
 
 // Initialize budget when auth state changes
-window.addEventListener('authStateChanged', (event) => {
-    const { isAuthenticated, user } = event.detail;
-    if (isAuthenticated && user) {
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
         loadBudgetData(user.uid);
     } else {
         resetBudgetData();
@@ -74,22 +73,50 @@ async function addExpense(event) {
         description: form.description.value,
         amount: parseFloat(form.amount.value),
         category: form.category.value,
-        date: new Date().toISOString(),
-        recurring: form.recurring.checked,
-        frequency: form.frequency.value
+        date: new Date().toISOString()
     };
 
     try {
-        budgetData.expenses.push(expense);
         await db.collection('budgets').doc(user.uid).update({
             expenses: firebase.firestore.FieldValue.arrayUnion(expense)
         });
+        budgetData.expenses.push(expense);
         updateBudgetDisplay();
         form.reset();
         showSuccess('Expense added successfully!');
     } catch (error) {
         console.error('Error adding expense:', error);
         showError('Failed to add expense. Please try again.');
+    }
+}
+
+async function handleSetBudget(event) {
+    event.preventDefault();
+    
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        showError('Please login to set budget');
+        return;
+    }
+
+    const form = event.target;
+    const amount = parseFloat(form.amount.value);
+    if (isNaN(amount) || amount < 0) {
+        showError('Please enter a valid amount');
+        return;
+    }
+
+    try {
+        await db.collection('budgets').doc(user.uid).update({
+            totalBudget: amount
+        });
+        budgetData.totalBudget = amount;
+        updateBudgetDisplay();
+        form.reset();
+        showSuccess('Budget updated successfully!');
+    } catch (error) {
+        console.error('Error setting budget:', error);
+        showError('Failed to set budget. Please try again.');
     }
 }
 
@@ -120,32 +147,6 @@ function formatCurrency(amount) {
     }).format(amount);
 }
 
-async function setTotalBudget() {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        showError('Please login to set budget');
-        return;
-    }
-
-    const amount = parseFloat(prompt('Enter total budget amount in EUR:'));
-    if (isNaN(amount) || amount < 0) {
-        showError('Please enter a valid amount');
-        return;
-    }
-
-    try {
-        budgetData.totalBudget = amount;
-        await db.collection('budgets').doc(user.uid).update({
-            totalBudget: amount
-        });
-        updateBudgetDisplay();
-        showSuccess('Budget updated successfully!');
-    } catch (error) {
-        console.error('Error setting budget:', error);
-        showError('Failed to set budget. Please try again.');
-    }
-}
-
 function showError(message) {
     const alertDiv = document.createElement('div');
     alertDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded';
@@ -169,116 +170,138 @@ document.addEventListener('DOMContentLoaded', () => {
         expenseForm.addEventListener('submit', addExpense);
     }
 
-    const setBudgetBtn = document.getElementById('set-budget-btn');
-    if (setBudgetBtn) {
-        setBudgetBtn.addEventListener('click', setTotalBudget);
+    const budgetForm = document.getElementById('budget-form');
+    if (budgetForm) {
+        budgetForm.addEventListener('submit', handleSetBudget);
     }
 });
 
 // Update expenses list
 function updateExpensesList() {
-    const tbody = document.getElementById('expenses-tbody');
-    tbody.innerHTML = '';
+    const expenseList = document.getElementById('expense-list');
+    if (!expenseList) return;
 
-    budgetData.expenses
+    if (!budgetData.expenses.length) {
+        expenseList.innerHTML = '<p class="text-gray-500 text-center py-4">No expenses yet</p>';
+        return;
+    }
+
+    expenseList.innerHTML = budgetData.expenses
         .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .forEach(expense => {
-            const tr = document.createElement('tr');
-            tr.className = 'hover:bg-gray-50';
-            tr.innerHTML = `
-                <td class="px-6 py-4">${new Date(expense.date).toLocaleDateString()}</td>
-                <td class="px-6 py-4">${expense.description}</td>
-                <td class="px-6 py-4">
-                    <span class="inline-flex items-center">
-                        <i class="fas ${budgetCategories[expense.category].icon} mr-2" style="color: ${budgetCategories[expense.category].color}"></i>
-                        ${budgetCategories[expense.category].name}
-                    </span>
-                </td>
-                <td class="px-6 py-4">${formatCurrency(expense.amount)}</td>
-                <td class="px-6 py-4">
+        .map(expense => `
+            <div class="flex justify-between items-center py-4 border-b last:border-0">
+                <div>
+                    <p class="font-medium">${expense.description}</p>
+                    <p class="text-sm text-gray-500">
+                        <span class="inline-flex items-center">
+                            <i class="fas ${budgetCategories[expense.category].icon} mr-2" style="color: ${budgetCategories[expense.category].color}"></i>
+                            ${budgetCategories[expense.category].name}
+                        </span>
+                        • ${new Date(expense.date).toLocaleDateString()}
+                    </p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="font-medium">${formatCurrency(expense.amount)}</span>
                     <button onclick="deleteExpense('${expense.date}')" class="text-red-500 hover:text-red-700">
                         <i class="fas fa-trash"></i>
                     </button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
+                </div>
+            </div>
+        `).join('');
 }
 
 // Delete expense
-function deleteExpense(date) {
-    if (confirm('Are you sure you want to delete this expense?')) {
-        const user = firebase.auth().currentUser;
-        const expenseIndex = budgetData.expenses.findIndex(expense => expense.date === date);
-        if (expenseIndex !== -1) {
-            budgetData.expenses.splice(expenseIndex, 1);
-            db.collection('budgets').doc(user.uid).update({
-                expenses: firebase.firestore.FieldValue.arrayRemove(budgetData.expenses[expenseIndex])
-            });
-            updateExpensesList();
-            updateCategorySpending();
-            updateBudgetSummary();
-        }
+async function deleteExpense(date) {
+    if (!confirm('Are you sure you want to delete this expense?')) return;
+
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        showError('Please login to delete expenses');
+        return;
+    }
+
+    try {
+        const expense = budgetData.expenses.find(e => e.date === date);
+        if (!expense) return;
+
+        await db.collection('budgets').doc(user.uid).update({
+            expenses: firebase.firestore.FieldValue.arrayRemove(expense)
+        });
+
+        budgetData.expenses = budgetData.expenses.filter(e => e.date !== date);
+        updateBudgetDisplay();
+        showSuccess('Expense deleted successfully!');
+    } catch (error) {
+        console.error('Error deleting expense:', error);
+        showError('Failed to delete expense. Please try again.');
     }
 }
 
 // Update category spending
 function updateCategorySpending() {
-    // Reset category spending
-    Object.keys(budgetData.categoryLimits).forEach(category => {
-        budgetData.categoryLimits[category].spent = 0;
+    const categorySpending = {};
+    Object.keys(budgetCategories).forEach(category => {
+        categorySpending[category] = 0;
     });
 
-    // Calculate spending by category
     budgetData.expenses.forEach(expense => {
-        budgetData.categoryLimits[expense.category].spent += expense.amount;
+        if (categorySpending.hasOwnProperty(expense.category)) {
+            categorySpending[expense.category] += expense.amount;
+        }
     });
 
-    // Update category cards
     const categoryContainer = document.getElementById('category-spending');
-    categoryContainer.innerHTML = '';
+    if (!categoryContainer) return;
 
-    Object.entries(budgetCategories).forEach(([key, value]) => {
-        const spent = budgetData.categoryLimits[key].spent;
-        const limit = budgetData.categoryLimits[key].limit;
-        const percentage = limit ? (spent / limit) * 100 : 0;
-
-        const card = document.createElement('div');
-        card.className = 'bg-white rounded-xl shadow-lg p-4 transform hover:scale-105 transition-transform duration-300';
-        card.innerHTML = `
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center">
-                    <i class="fas ${value.icon} text-xl mr-2" style="color: ${value.color}"></i>
-                    <h4 class="font-semibold">${value.name}</h4>
+    categoryContainer.innerHTML = Object.entries(budgetCategories)
+        .map(([category, info]) => {
+            const spent = categorySpending[category];
+            const percentage = budgetData.totalBudget ? (spent / budgetData.totalBudget) * 100 : 0;
+            
+            return `
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <div class="flex items-center">
+                            <i class="fas ${info.icon} text-2xl mr-3" style="color: ${info.color}"></i>
+                            <span class="font-medium">${info.name}</span>
+                        </div>
+                        <span class="text-sm font-medium">${formatCurrency(spent)}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="h-2 rounded-full transition-all duration-500" 
+                             style="width: ${Math.min(percentage, 100)}%; background-color: ${info.color}">
+                        </div>
+                    </div>
                 </div>
-                <button onclick="editCategoryLimit('${key}')" class="text-blue-500 hover:text-blue-700">
-                    <i class="fas fa-edit"></i>
-                </button>
-            </div>
-            <div class="space-y-2">
-                <div class="flex justify-between text-sm">
-                    <span>Spent: ${formatCurrency(spent)}</span>
-                    <span>Limit: ${formatCurrency(limit)}</span>
-                </div>
-                <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div class="h-full transition-all duration-500 ${
-                        percentage > 90 ? 'bg-red-500' : percentage > 75 ? 'bg-yellow-500' : 'bg-green-500'
-                    }" style="width: ${Math.min(percentage, 100)}%"></div>
-                </div>
-            </div>
-        `;
-        categoryContainer.appendChild(card);
-    });
-
-    updateCharts();
+            `;
+        })
+        .join('');
 }
 
 // Update charts
 function updateCharts() {
-    const ctx = document.getElementById('spending-chart').getContext('2d');
-    const categories = Object.keys(budgetCategories).map(key => budgetCategories[key].name);
-    const spent = Object.keys(budgetCategories).map(key => budgetData.categoryLimits[key].spent);
-    const colors = Object.keys(budgetCategories).map(key => budgetCategories[key].color);
+    const ctx = document.getElementById('spending-chart');
+    if (!ctx) return;
+
+    const categorySpending = {};
+    Object.keys(budgetCategories).forEach(category => {
+        categorySpending[category] = 0;
+    });
+
+    budgetData.expenses.forEach(expense => {
+        if (categorySpending.hasOwnProperty(expense.category)) {
+            categorySpending[expense.category] += expense.amount;
+        }
+    });
+
+    const data = {
+        labels: Object.values(budgetCategories).map(cat => cat.name),
+        datasets: [{
+            data: Object.values(categorySpending),
+            backgroundColor: Object.values(budgetCategories).map(cat => cat.color),
+            borderWidth: 1
+        }]
+    };
 
     if (doughnutChart) {
         doughnutChart.destroy();
@@ -286,99 +309,14 @@ function updateCharts() {
 
     doughnutChart = new Chart(ctx, {
         type: 'doughnut',
-        data: {
-            labels: categories,
-            datasets: [{
-                data: spent,
-                backgroundColor: colors,
-                borderWidth: 1
-            }]
-        },
+        data: data,
         options: {
             responsive: true,
-            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     position: 'right'
                 }
-            },
-            animation: {
-                animateRotate: true,
-                animateScale: true
             }
         }
     });
-
-    // Update line chart for monthly spending
-    const monthlyCtx = document.getElementById('monthly-chart').getContext('2d');
-    const monthlyData = getMonthlySpending();
-
-    if (lineChart) {
-        lineChart.destroy();
-    }
-
-    lineChart = new Chart(monthlyCtx, {
-        type: 'line',
-        data: {
-            labels: monthlyData.labels,
-            datasets: [{
-                label: 'Monthly Spending',
-                data: monthlyData.values,
-                borderColor: '#4BC0C0',
-                tension: 0.4,
-                fill: true,
-                backgroundColor: 'rgba(75, 192, 192, 0.2)'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            },
-            animation: {
-                duration: 2000,
-                easing: 'easeInOutQuart'
-            }
-        }
-    });
-}
-
-// Get monthly spending data
-function getMonthlySpending() {
-    const months = {};
-    budgetData.expenses.forEach(expense => {
-        const date = new Date(expense.date);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        months[monthKey] = (months[monthKey] || 0) + expense.amount;
-    });
-
-    const sortedMonths = Object.entries(months)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .slice(-6);
-
-    return {
-        labels: sortedMonths.map(([month]) => {
-            const [year, monthNum] = month.split('-');
-            return new Date(year, monthNum - 1).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-        }),
-        values: sortedMonths.map(([, value]) => value)
-    };
-}
-
-// Edit category limit
-function editCategoryLimit(category) {
-    const currentLimit = budgetData.categoryLimits[category].limit;
-    const newLimit = parseFloat(prompt(`Enter new limit for ${budgetCategories[category].name}:`, currentLimit));
-    
-    if (!isNaN(newLimit) && newLimit >= 0) {
-        budgetData.categoryLimits[category].limit = newLimit;
-        const user = firebase.auth().currentUser;
-        db.collection('budgets').doc(user.uid).update({
-            [`categoryLimits.${category}.limit`]: newLimit
-        });
-        updateCategorySpending();
-    }
 }
