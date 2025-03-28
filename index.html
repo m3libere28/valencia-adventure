@@ -821,44 +821,58 @@
                 </div>
             </div>
 
-            <!-- Useful Tools -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-white rounded-xl shadow-lg p-6">
-                    <h3 class="text-xl font-semibold mb-4">Rental Price Calculator</h3>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Rent (€)</label>
+            <!-- Rental Calculator -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold mb-6">Rental Cost Calculator</h3>
+                <div class="space-y-6">
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Monthly Rent (€)</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                             <input type="number" id="monthly-rent" 
-                                   class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                   class="w-full pl-8 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                                    placeholder="e.g. 800">
                         </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Deposit (months)</label>
-                            <select id="deposit-months" 
-                                    class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="1">1 month</option>
-                                <option value="2">2 months</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Agency Fee?</label>
-                            <select id="agency-fee" 
-                                    class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                                <option value="0">No</option>
-                                <option value="1">Yes (1 month rent)</option>
-                            </select>
-                        </div>
-                        <button onclick="calculateTotalCost()"
-                                class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-                                       transition-colors">
-                            Calculate Total
-                        </button>
-                        <div id="cost-result" class="hidden p-4 bg-gray-50 rounded-lg mt-4">
-                            <!-- Results will be shown here -->
-                        </div>
                     </div>
-                </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Security Deposit</label>
+                        <select id="deposit-months" 
+                                class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                            <option value="1">1 month rent</option>
+                            <option value="2">2 months rent</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Agency Fee?</label>
+                        <select id="agency-fee" 
+                                class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white">
+                            <option value="0">No agency fee</option>
+                            <option value="1">Yes (1 month rent)</option>
+                        </select>
+                    </div>
 
+                    <div class="flex items-center space-x-3">
+                        <input type="checkbox" id="include-utilities" 
+                               class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
+                        <label class="text-sm font-medium text-gray-700">Include utility estimates</label>
+                    </div>
+                    
+                    <button onclick="calculateTotalCost()"
+                            class="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg 
+                                   hover:from-blue-700 hover:to-purple-700 transition-all duration-300
+                                   flex items-center justify-center space-x-2">
+                        <i class="fas fa-calculator"></i>
+                        <span>Calculate Total</span>
+                    </button>
+                    
+                    <div id="cost-result" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- Useful Tools -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="bg-white rounded-xl shadow-lg p-6">
                     <h3 class="text-xl font-semibold mb-4">Neighborhood Guide</h3>
                     <div class="space-y-4">
@@ -1544,7 +1558,7 @@
                 if (temp >= 28) {
                     return [
                         { icon: 'fa-tshirt', text: 'Light cotton shirt' },
-                        { icon: 'fa-walking', text: 'Shorts or skirt' },
+                        { icon: 'fa-walking', text: 'Shorts/skirts' },
                         { icon: 'fa-umbrella-beach', text: 'Sun hat' },
                         { icon: 'fa-glasses', text: 'Sunglasses' }
                     ];
@@ -1919,6 +1933,164 @@
                 </div>
             </div>
         </div>
+    </section>
+
+    <!-- Family Adventure Section -->
+    <section id="about" class="py-20 bg-gradient-to-b from-blue-50 to-purple-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-16">Our Valencia Adventure</h2>
+            
+            <!-- Interactive Timeline -->
+            <div class="relative">
+                <!-- Progress Line -->
+                <div class="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-blue-400 to-purple-400"></div>
+                
+                <!-- Timeline Items -->
+                <div class="space-y-24">
+                    <!-- Decision Phase -->
+                    <div class="relative flex items-center group" data-aos="fade-up">
+                        <div class="w-1/2 pr-8 text-right group-hover:transform group-hover:-translate-x-2 transition-transform">
+                            <h3 class="text-2xl font-semibold mb-2 text-blue-600">The Big Decision</h3>
+                            <p class="text-gray-600">From dreaming about Spain to making it our reality</p>
+                        </div>
+                        <div class="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-white shadow-lg
+                                    border-4 border-blue-400 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-lightbulb text-blue-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                        </div>
+                        <div class="w-1/2 pl-8 group-hover:transform group-hover:translate-x-2 transition-transform">
+                            <div class="bg-white rounded-xl shadow-lg p-4 transform transition-transform hover:scale-105">
+                                <img src="https://images.unsplash.com/photo-1516738901171-8eb4fc13bd20?auto=format&fit=crop&w=500" 
+                                     alt="Dream of Spain" class="w-full h-48 object-cover rounded-lg mb-4">
+                                <p class="text-gray-600">After months of research and planning, we decided to embark on this incredible journey</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preparation Phase -->
+                    <div class="relative flex items-center group" data-aos="fade-up" data-aos-delay="100">
+                        <div class="w-1/2 pr-8 text-right">
+                            <div class="bg-white rounded-xl shadow-lg p-4 transform transition-transform hover:scale-105">
+                                <img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?auto=format&fit=crop&w=500" 
+                                     alt="Preparation" class="w-full h-48 object-cover rounded-lg mb-4">
+                                <p class="text-gray-600">Getting all our documents ready, learning Spanish, and preparing for the move</p>
+                            </div>
+                        </div>
+                        <div class="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-white shadow-lg
+                                    border-4 border-purple-400 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-tasks text-purple-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                        </div>
+                        <div class="w-1/2 pl-8 group-hover:transform group-hover:translate-x-2 transition-transform">
+                            <h3 class="text-2xl font-semibold mb-2 text-purple-600">Preparation</h3>
+                            <p class="text-gray-600">Making it happen, one step at a time</p>
+                        </div>
+                    </div>
+
+                    <!-- The Move -->
+                    <div class="relative flex items-center group" data-aos="fade-up" data-aos-delay="200">
+                        <div class="w-1/2 pr-8 text-right group-hover:transform group-hover:-translate-x-2 transition-transform">
+                            <h3 class="text-2xl font-semibold mb-2 text-blue-600">The Big Move</h3>
+                            <p class="text-gray-600">Crossing the Atlantic to start our new life</p>
+                        </div>
+                        <div class="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-white shadow-lg
+                                    border-4 border-blue-400 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-plane-departure text-blue-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                        </div>
+                        <div class="w-1/2 pl-8">
+                            <div class="bg-white rounded-xl shadow-lg p-4 transform transition-transform hover:scale-105">
+                                <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=500" 
+                                     alt="Moving Day" class="w-full h-48 object-cover rounded-lg mb-4">
+                                <p class="text-gray-600">The excitement and butterflies as we board our flight to Spain</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Life -->
+                    <div class="relative flex items-center group" data-aos="fade-up" data-aos-delay="300">
+                        <div class="w-1/2 pr-8 text-right">
+                            <div class="bg-white rounded-xl shadow-lg p-4 transform transition-transform hover:scale-105">
+                                <img src="https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?auto=format&fit=crop&w=500" 
+                                     alt="Valencia Life" class="w-full h-48 object-cover rounded-lg mb-4">
+                                <p class="text-gray-600">Exploring our new home, making friends, and creating memories</p>
+                            </div>
+                        </div>
+                        <div class="absolute left-1/2 transform -translate-x-1/2 w-12 h-12 rounded-full bg-white shadow-lg
+                                    border-4 border-purple-400 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-heart text-purple-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                        </div>
+                        <div class="w-1/2 pl-8 group-hover:transform group-hover:translate-x-2 transition-transform">
+                            <h3 class="text-2xl font-semibold mb-2 text-purple-600">New Life in Valencia</h3>
+                            <p class="text-gray-600">Living our dream in the heart of Spain</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Family Stats -->
+            <div class="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform">
+                    <div class="text-3xl text-blue-600 mb-2">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="text-4xl font-bold text-gray-800 mb-1 counter" data-target="365">0</div>
+                    <div class="text-gray-600">Days Until Move</div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform">
+                    <div class="text-3xl text-purple-600 mb-2">
+                        <i class="fas fa-language"></i>
+                    </div>
+                    <div class="text-4xl font-bold text-gray-800 mb-1 counter" data-target="2">0</div>
+                    <div class="text-gray-600">Languages Learning</div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform">
+                    <div class="text-3xl text-blue-600 mb-2">
+                        <i class="fas fa-suitcase"></i>
+                    </div>
+                    <div class="text-4xl font-bold text-gray-800 mb-1 counter" data-target="8">0</div>
+                    <div class="text-gray-600">Suitcases Packed</div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 text-center transform hover:scale-105 transition-transform">
+                    <div class="text-3xl text-purple-600 mb-2">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="text-4xl font-bold text-gray-800 mb-1 counter" data-target="100">0</div>
+                    <div class="text-gray-600">Excitement Level</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Animation Script -->
+        <script>
+            // Counter animation
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = parseInt(counter.getAttribute('data-target'));
+                const duration = 2000; // 2 seconds
+                const step = target / (duration / 16); // 60fps
+
+                function updateCount() {
+                    const current = parseInt(counter.innerText);
+                    if (current < target) {
+                        counter.innerText = Math.min(Math.ceil(current + step), target);
+                        setTimeout(updateCount, 16);
+                    }
+                }
+
+                // Start counter when element is in view
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            updateCount();
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                });
+
+                observer.observe(counter);
+            });
+        </script>
     </section>
 </div>
 </body>
