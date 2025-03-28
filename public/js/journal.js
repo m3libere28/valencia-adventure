@@ -3,13 +3,27 @@ let journalMap;
 let journalMarkers = [];
 
 // Initialize journal data
-let journalEntries = JSON.parse(localStorage.getItem('journalEntries')) || [];
+let journalEntries = [];
+
+// Load journal entries from server
+async function loadJournalEntries() {
+    try {
+        const response = await fetch('/api/submit-form');
+        const data = await response.json();
+        if (data.success) {
+            journalEntries = data.entries || [];
+            updateJournalEntries();
+        }
+    } catch (error) {
+        console.error('Error loading journal entries:', error);
+    }
+}
 
 // Initialize map
 function initJournalMap() {
     journalMap = L.map('journal-map').setView([39.4699, -0.3763], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
+        attribution: ' OpenStreetMap contributors'
     }).addTo(journalMap);
 
     // Add existing markers
@@ -77,12 +91,29 @@ async function addJournalEntry(e) {
         tags: form.querySelector('[name="tags"]').value.split(',').map(tag => tag.trim())
     };
 
-    journalEntries.push(entry);
-    localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
-    
-    addMarkerToMap(entry);
-    updateJournalEntries();
-    form.reset();
+    try {
+        const response = await fetch('/api/submit-form', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(entry)
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            journalEntries.push(entry);
+            addMarkerToMap(entry);
+            updateJournalEntries();
+            form.reset();
+        } else {
+            console.error('Error saving entry:', data.message);
+            alert('Failed to save entry. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error saving entry:', error);
+        alert('Failed to save entry. Please try again.');
+    }
 }
 
 // Update journal entries display
@@ -175,16 +206,6 @@ function showOnMap(location) {
 function deleteEntry(id) {
     if (confirm('Are you sure you want to delete this journal entry?')) {
         journalEntries = journalEntries.filter(entry => entry.id !== id);
-        localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
-        
-        // Remove marker
-        journalMarkers.forEach((marker, index) => {
-            if (marker.entryId === id) {
-                journalMap.removeLayer(marker);
-                journalMarkers.splice(index, 1);
-            }
-        });
-        
         updateJournalEntries();
     }
 }
@@ -235,7 +256,6 @@ function importJournal(event) {
             try {
                 const importedData = JSON.parse(e.target.result);
                 journalEntries = importedData;
-                localStorage.setItem('journalEntries', JSON.stringify(journalEntries));
                 
                 // Clear existing markers
                 journalMarkers.forEach(marker => journalMap.removeLayer(marker));
@@ -260,10 +280,10 @@ function importJournal(event) {
 
 // Initialize when document is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    loadJournalEntries();
     initJournalMap();
     document.getElementById('journal-form').addEventListener('submit', addJournalEntry);
     document.getElementById('import-journal').addEventListener('change', importJournal);
-    updateJournalEntries();
     
     // Handle map clicks for location selection
     journalMap.on('click', function(e) {

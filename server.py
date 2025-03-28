@@ -1,10 +1,23 @@
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 
-def run(server_class=HTTPServer, handler_class=SimpleHTTPRequestHandler):
-    server_address = ('', 3000)
-    httpd = server_class(server_address, handler_class)
-    print('Server running at http://localhost:3000/')
-    httpd.serve_forever()
+app = Flask(__name__, static_folder='public', static_url_path='')
+CORS(app)
+
+@app.route('/')
+def index():
+    return app.send_static_file('index.html')
+
+@app.route('/api/submit-form', methods=['POST'])
+def submit_form():
+    try:
+        data = request.get_json()
+        # Here you would typically save the data to a database
+        # For now, we'll just print it and return success
+        print("Received form data:", data)
+        return jsonify({"success": True, "message": "Form submitted successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 400
 
 if __name__ == '__main__':
-    run()
+    app.run(port=3000)
