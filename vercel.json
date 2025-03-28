@@ -13,7 +13,12 @@
     "routes": [
         {
             "src": "/api/(.*)",
-            "dest": "/server.py"
+            "dest": "/server.py",
+            "headers": {
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+                "Access-Control-Allow-Headers": "Authorization, Content-Type"
+            }
         },
         {
             "handle": "filesystem"
@@ -24,6 +29,6 @@
         }
     ],
     "env": {
-        "PYTHONPATH": "."
+        "PYTHON_VERSION": "3.13"
     }
 }

@@ -10,11 +10,14 @@ const auth0Config = {
 // List of allowed origins for Auth0
 const allowedOrigins = [
     'http://localhost:8000',
-    'https://personal-website-taupe-pi-67.vercel.app'
+    'https://personal-website-taupe-pi-67.vercel.app',
+    'https://m3libere28.github.io'
 ];
 
 // API base URL based on environment
-const API_BASE_URL = window.location.origin;
+const API_BASE_URL = window.location.hostname === 'm3libere28.github.io'
+    ? 'https://personal-website-taupe-pi-67.vercel.app'
+    : window.location.origin;
 
 // Validate current origin
 if (!allowedOrigins.includes(window.location.origin)) {
@@ -30,12 +33,6 @@ console.log('Environment:', {
     apiBaseUrl: API_BASE_URL
 });
 
-console.log('Auth0 configuration loaded:', { 
-    ...auth0Config, 
-    clientId: '***',
-    redirectUri: auth0Config.redirectUri 
-});
-
 let auth0Client = null;
 window.isAuthenticated = false;
 let userProfile = null;
@@ -44,50 +41,46 @@ let userProfile = null;
 async function initAuth() {
     try {
         console.log('Initializing Auth0 client...');
-        auth0Client = await auth0.createAuth0Client({
+        auth0Client = await createAuth0Client({
             domain: auth0Config.domain,
             clientId: auth0Config.clientId,
             authorizationParams: {
                 redirect_uri: auth0Config.redirectUri,
                 audience: auth0Config.audience,
                 scope: auth0Config.scope
-            }
+            },
+            cacheLocation: 'localstorage'
         });
 
-        console.log('Auth0 client initialized');
-
-        // Check if user was redirected after login
-        if (window.location.search.includes('code=') && window.location.search.includes('state=')) {
-            console.log('Processing login callback');
+        // Check for authentication state on page load
+        if (window.location.search.includes("code=")) {
+            console.log('Auth code detected, handling redirect...');
             try {
                 await auth0Client.handleRedirectCallback();
                 window.history.replaceState({}, document.title, window.location.pathname);
-                console.log('Login callback processed successfully');
-            } catch (callbackError) {
-                console.error('Error handling redirect callback:', callbackError);
+                console.log('Redirect handled successfully');
+            } catch (err) {
+                console.error('Error handling redirect:', err);
+                showError('Failed to complete authentication. Please try again.');
             }
         }
 
+        // Update authentication state
         window.isAuthenticated = await auth0Client.isAuthenticated();
-        console.log('Is authenticated:', window.isAuthenticated);
-        
         if (window.isAuthenticated) {
             userProfile = await auth0Client.getUser();
-            console.log('User profile loaded:', { ...userProfile, sub: '***' });
-            updateUI();
-            
-            // Initialize protected features
-            if (typeof initializeBudget === 'function') {
-                console.log('Initializing budget feature');
-                initializeBudget();
-            }
-        } else {
-            console.log('User is not authenticated');
-            updateUI();
+            console.log('User is authenticated:', userProfile);
         }
-    } catch (error) {
-        console.error('Auth initialization error:', error);
-        updateUI(); // Still update UI to show login button
+
+        // Update UI and dispatch event
+        updateUI();
+        window.dispatchEvent(new CustomEvent('authStateChanged', {
+            detail: { isAuthenticated: window.isAuthenticated }
+        }));
+
+    } catch (err) {
+        console.error('Auth initialization error:', err);
+        showError('Failed to initialize authentication. Please refresh the page.');
     }
 }
 
@@ -95,18 +88,14 @@ async function initAuth() {
 async function login() {
     try {
         console.log('Starting login process...');
-        if (!auth0Client) {
-            console.error('Auth0 client not initialized');
-            return;
-        }
         await auth0Client.loginWithRedirect({
             authorizationParams: {
                 redirect_uri: window.location.origin
             }
         });
-        console.log('Redirecting to Auth0 login page...');
-    } catch (error) {
-        console.error('Login error:', error);
+    } catch (err) {
+        console.error('Login error:', err);
+        showError('Failed to start login process. Please try again.');
     }
 }
 
@@ -114,63 +103,71 @@ async function login() {
 async function logout() {
     try {
         console.log('Starting logout process...');
-        if (!auth0Client) {
-            console.error('Auth0 client not initialized');
-            return;
-        }
         await auth0Client.logout({
             logoutParams: {
                 returnTo: window.location.origin
             }
         });
-        console.log('Logged out successfully');
-    } catch (error) {
-        console.error('Logout error:', error);
+        window.isAuthenticated = false;
+        userProfile = null;
+        updateUI();
+        window.dispatchEvent(new CustomEvent('authStateChanged', {
+            detail: { isAuthenticated: false }
+        }));
+    } catch (err) {
+        console.error('Logout error:', err);
+        showError('Failed to logout. Please try again.');
     }
 }
 
 // Update UI based on authentication state
-function updateUI() {
-    console.log('Updating UI for auth state:', window.isAuthenticated);
+async function updateUI() {
     const loginBtn = document.getElementById('loginBtn');
     const logoutBtn = document.getElementById('logoutBtn');
-    const userInfo = document.getElementById('userInfo');
-    const protectedFeatures = document.querySelectorAll('.protected-feature');
+    const userSection = document.getElementById('userSection');
+    const userName = document.getElementById('userName');
+    const userPicture = document.getElementById('userPicture');
 
-    if (!loginBtn || !logoutBtn || !userInfo) {
-        console.error('Required UI elements not found:', {
-            loginBtn: !!loginBtn,
-            logoutBtn: !!logoutBtn,
-            userInfo: !!userInfo
-        });
-        return;
-    }
+    try {
+        const isAuthenticated = await auth0Client.isAuthenticated();
+        console.log('Updating UI, authenticated:', isAuthenticated);
 
-    if (window.isAuthenticated && userProfile) {
-        console.log('Showing authenticated UI');
-        loginBtn.style.display = 'none';
-        logoutBtn.style.display = 'block';
-        userInfo.innerHTML = `
-            <div class="flex items-center">
-                <img src="${userProfile.picture}" alt="Profile" class="w-8 h-8 rounded-full">
-                <span class="ml-2">${userProfile.name}</span>
-            </div>
-        `;
-        userInfo.style.display = 'flex';
-        
-        protectedFeatures.forEach(feature => {
-            feature.style.display = 'block';
-        });
-    } else {
-        console.log('Showing unauthenticated UI');
-        loginBtn.style.display = 'block';
-        logoutBtn.style.display = 'none';
-        userInfo.style.display = 'none';
-        userInfo.innerHTML = '';
-        
-        protectedFeatures.forEach(feature => {
-            feature.style.display = 'none';
-        });
+        if (isAuthenticated) {
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'block';
+            userSection.style.display = 'flex';
+
+            if (!userProfile) {
+                userProfile = await auth0Client.getUser();
+            }
+
+            if (userProfile) {
+                userName.textContent = userProfile.name || userProfile.email;
+                if (userProfile.picture) {
+                    userPicture.src = userProfile.picture;
+                    userPicture.style.display = 'block';
+                }
+            }
+
+            // Show protected content
+            document.querySelectorAll('.protected-content').forEach(element => {
+                element.style.display = 'block';
+            });
+        } else {
+            loginBtn.style.display = 'block';
+            logoutBtn.style.display = 'none';
+            userSection.style.display = 'none';
+            userName.textContent = '';
+            userPicture.style.display = 'none';
+
+            // Hide protected content
+            document.querySelectorAll('.protected-content').forEach(element => {
+                element.style.display = 'none';
+            });
+        }
+    } catch (err) {
+        console.error('Error updating UI:', err);
+        showError('Failed to update the page. Please refresh.');
     }
 }
 
@@ -180,43 +177,44 @@ async function getAccessToken() {
         if (!auth0Client) {
             throw new Error('Auth0 client not initialized');
         }
-        console.log('Getting access token...');
-        const token = await auth0Client.getTokenSilently();
-        console.log('Access token obtained');
-        return token;
-    } catch (error) {
-        console.error('Error getting access token:', error);
-        throw error;
+        return await auth0Client.getTokenSilently();
+    } catch (err) {
+        console.error('Error getting access token:', err);
+        showError('Failed to get access token. Please try logging in again.');
+        return null;
     }
 }
 
 // API helpers
 async function apiGet(endpoint) {
     try {
-        console.log(`Making GET request to ${endpoint}...`);
         const token = await getAccessToken();
-        const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, {
+        if (!token) return null;
+
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
+
         if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const data = await response.json();
-        console.log(`GET ${endpoint} successful:`, data);
-        return data;
-    } catch (error) {
-        console.error(`API GET error (${endpoint}):`, error);
-        throw error;
+
+        return await response.json();
+    } catch (err) {
+        console.error('API GET error:', err);
+        showError('Failed to fetch data. Please try again.');
+        return null;
     }
 }
 
 async function apiPost(endpoint, data) {
     try {
-        console.log(`Making POST request to ${endpoint}...`, data);
         const token = await getAccessToken();
-        const response = await fetch(`${API_BASE_URL}/api/${endpoint}`, {
+        if (!token) return null;
+
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -224,15 +222,29 @@ async function apiPost(endpoint, data) {
             },
             body: JSON.stringify(data)
         });
+
         if (!response.ok) {
-            throw new Error(`API error: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        const responseData = await response.json();
-        console.log(`POST ${endpoint} successful:`, responseData);
-        return responseData;
-    } catch (error) {
-        console.error(`API POST error (${endpoint}):`, error);
-        throw error;
+
+        return await response.json();
+    } catch (err) {
+        console.error('API POST error:', err);
+        showError('Failed to save data. Please try again.');
+        return null;
+    }
+}
+
+// Show error message
+function showError(message) {
+    const alert = document.getElementById('auth-alert');
+    if (alert) {
+        alert.textContent = message;
+        alert.className = 'bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4';
+        alert.style.display = 'block';
+        setTimeout(() => alert.style.display = 'none', 5000);
+    } else {
+        console.error('Error:', message);
     }
 }
 
@@ -240,12 +252,12 @@ async function apiPost(endpoint, data) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded, initializing Auth0...');
     initAuth().catch(error => {
-        console.error('Error during Auth0 initialization:', error);
+        console.error('Auth initialization error:', error);
+        showError('Failed to initialize authentication. Please refresh the page.');
     });
 });
 
-// Export functions for use in other modules
+// Make functions globally available
 window.login = login;
 window.logout = logout;
-window.apiGet = apiGet;
-window.apiPost = apiPost;
+window.getAccessToken = getAccessToken;
