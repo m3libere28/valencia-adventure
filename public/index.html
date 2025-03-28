@@ -1163,145 +1163,102 @@
     <script src="./js/journal.js"></script>
 
     <!-- Budget Section -->
-    <section id="budget" class="py-20 bg-gray-50 protected-feature">
+    <section id="budget" class="py-20 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4">
             <h2 class="text-4xl font-bold text-center mb-2">Budget Tracker</h2>
-            <p class="text-xl text-center text-gray-600 mb-16">Keep track of your expenses in Valencia</p>
+            <p class="text-xl text-center text-gray-600 mb-16">Track your expenses in Valencia</p>
 
-            <!-- Budget Summary -->
+            <!-- Budget Overview -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
-                    <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-xl font-semibold">Total Budget</h4>
-                        <button id="set-total-budget" class="text-blue-500 hover:text-blue-700">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </div>
-                    <p id="total-budget" class="text-3xl font-bold text-green-500">€0.00</p>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-2">Total Budget</h3>
+                    <p id="budget-display" class="text-3xl font-bold text-blue-600">€0</p>
                 </div>
-                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
-                    <h4 class="text-xl font-semibold mb-4">Total Expenses</h4>
-                    <p id="total-expenses" class="text-3xl font-bold text-red-500">€0.00</p>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-2">Total Expenses</h3>
+                    <p id="expenses-display" class="text-3xl font-bold text-red-600">€0</p>
                 </div>
-                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
-                    <h4 class="text-xl font-semibold mb-4">Remaining Budget</h4>
-                    <p id="remaining-budget" class="text-3xl font-bold text-blue-500">€0.00</p>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-2">Remaining</h3>
+                    <p id="remaining-display" class="text-3xl font-bold text-green-600">€0</p>
                 </div>
             </div>
 
             <!-- Budget Progress -->
-            <div class="bg-white rounded-xl shadow-lg p-6 mb-12 content-section">
-                <h4 class="text-xl font-semibold mb-4">Budget Progress</h4>
-                <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
-                    <div id="budget-progress" class="h-full bg-green-500 transition-all duration-500" style="width: 0%"></div>
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-12">
+                <h3 class="text-lg font-semibold mb-4">Budget Progress</h3>
+                <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div id="budget-progress" class="bg-blue-500 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
                 </div>
             </div>
 
-            <!-- Charts -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
-                    <h4 class="text-xl font-semibold mb-4">Spending by Category</h4>
-                    <div class="h-80">
-                        <canvas id="spending-chart"></canvas>
+            <!-- Set Budget Form -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-12">
+                <h3 class="text-lg font-semibold mb-4">Set Total Budget</h3>
+                <form id="budget-form" class="flex items-end gap-4">
+                    <div class="flex-1">
+                        <label for="budget-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (EUR)</label>
+                        <input type="number" id="budget-amount" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter amount" required>
                     </div>
-                </div>
-                <div class="bg-white rounded-xl shadow-lg p-6 content-section">
-                    <h4 class="text-xl font-semibold mb-4">Monthly Spending Trend</h4>
-                    <div class="h-80">
-                        <canvas id="monthly-chart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Category Spending -->
-            <div class="mb-12">
-                <h3 class="text-2xl font-semibold mb-6">Category Spending</h3>
-                <div id="category-spending" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 content-section">
-                    <!-- Category cards will be generated dynamically -->
-                </div>
-            </div>
-
-            <!-- Add Expense Form -->
-            <div class="bg-white rounded-xl shadow-lg p-8 mb-12 content-section">
-                <h4 class="text-2xl font-semibold mb-6">Add New Expense</h4>
-                <form id="expense-form" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
-                            <input type="date" name="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                            <input type="text" name="description" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                            <select name="category" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                                <option value="housing">Housing</option>
-                                <option value="utilities">Utilities</option>
-                                <option value="groceries">Groceries</option>
-                                <option value="transportation">Transportation</option>
-                                <option value="healthcare">Healthcare</option>
-                                <option value="entertainment">Entertainment</option>
-                                <option value="education">Education</option>
-                                <option value="shopping">Shopping</option>
-                                <option value="savings">Savings</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount (€)</label>
-                            <input type="number" name="amount" step="0.01" min="0" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                        <textarea name="notes" rows="3" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
-                    </div>
-                    <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
-                        Add Expense
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Set Budget
                     </button>
                 </form>
             </div>
 
-            <!-- Expenses List -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden content-section">
-                <div class="p-6 flex justify-between items-center">
-                    <h4 class="text-2xl font-semibold">Recent Expenses</h4>
-                    <div class="space-x-4">
-                        <button id="export-budget-data" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
-                            <i class="fas fa-download mr-2"></i>Export
-                        </button>
-                        <label class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors cursor-pointer">
-                            <i class="fas fa-upload mr-2"></i>Import
-                            <input type="file" id="import-budget" accept=".json" class="hidden">
-                        </label>
+            <!-- Add Expense Form -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-12">
+                <h3 class="text-lg font-semibold mb-4">Add Expense</h3>
+                <form id="expense-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="expense-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <select id="expense-category" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" required>
+                                <option value="">Select category</option>
+                                <option value="Housing">Housing</option>
+                                <option value="Food">Food</option>
+                                <option value="Transportation">Transportation</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Education">Education</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Savings">Savings</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="expense-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (EUR)</label>
+                            <input type="number" id="expense-amount" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter amount" required>
+                        </div>
+                        <div>
+                            <label for="expense-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <input type="text" id="expense-description" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Enter description" required>
+                        </div>
                     </div>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-gray-500 font-semibold">Date</th>
-                                <th class="px-6 py-3 text-left text-gray-500 font-semibold">Description</th>
-                                <th class="px-6 py-3 text-left text-gray-500 font-semibold">Category</th>
-                                <th class="px-6 py-3 text-left text-gray-500 font-semibold">Amount</th>
-                                <th class="px-6 py-3 text-left text-gray-500 font-semibold">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="expenses-tbody">
-                            <!-- Expenses will be added dynamically -->
-                        </tbody>
-                    </table>
+                    <div class="flex justify-end">
+                        <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                            Add Expense
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Expense List -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold">Recent Expenses</h3>
+                        <button id="export-expenses" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                            Export Data
+                        </button>
+                    </div>
+                    <div id="expense-list" class="divide-y">
+                        <!-- Expenses will be added here dynamically -->
+                    </div>
                 </div>
             </div>
         </div>
     </section>
-
-    <script>
-        document.getElementById('set-total-budget').addEventListener('click', setTotalBudget);
-        document.getElementById('export-budget-data').addEventListener('click', exportBudgetData);
-    </script>
 
     <!-- Currency Exchange Section -->
     <section id="currency" class="py-20 bg-gradient-to-br from-blue-50 to-purple-50">
