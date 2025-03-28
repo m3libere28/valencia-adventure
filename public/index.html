@@ -1100,7 +1100,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label for="school-name" class="block text-gray-700 font-medium mb-1">School Name</label>
-                            <input type="text" id="school-name" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
+                            <input type="text" id="school-name" name="title" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" required>
                         </div>
                         <div>
                             <label for="status" class="block text-gray-700 font-medium mb-1">Application Status</label>
@@ -1130,7 +1130,7 @@
                         <label for="notes" class="block text-gray-700 font-medium mb-1">Notes</label>
                         <textarea id="notes" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" rows="3"></textarea>
                     </div>
-                    <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                    <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
                         Add to Tracker
                     </button>
                 </form>
@@ -1155,6 +1155,7 @@
 
     <script src="./js/schools.js"></script>
     <script src="./js/journal.js"></script>
+    <script src="./js/budget.js"></script>
 
     <!-- Budget Section -->
     <section id="budget" class="py-20 bg-gray-50">
@@ -1341,7 +1342,9 @@
                     </select>
                 </div>
                 <div class="flex justify-between items-center">
-                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Save Entry</button>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                        Save Entry
+                    </button>
                     <button type="button" onclick="exportJournal()" class="text-blue-600 hover:text-blue-800">
                         <i class="fas fa-download mr-1"></i> Export Entries
                     </button>
