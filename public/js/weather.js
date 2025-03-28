@@ -1,3 +1,8 @@
+// Helper function to convert Celsius to Fahrenheit
+function celsiusToFahrenheit(celsius) {
+    return Math.round((celsius * 9/5) + 32);
+}
+
 // Helper function to make authenticated API calls
 async function apiGet(endpoint) {
     try {
@@ -31,8 +36,10 @@ async function updateWeatherDisplay() {
             return;
         }
 
-        const temperature = Math.round(weatherData.temperature.current);
-        const feelsLike = Math.round(weatherData.temperature.feels_like);
+        const tempC = Math.round(weatherData.temperature.current);
+        const feelsLikeC = Math.round(weatherData.temperature.feels_like);
+        const tempF = celsiusToFahrenheit(weatherData.temperature.current);
+        const feelsLikeF = celsiusToFahrenheit(weatherData.temperature.feels_like);
         
         weatherContent.innerHTML = `
             <div class="flex items-center justify-center space-x-4">
@@ -40,8 +47,12 @@ async function updateWeatherDisplay() {
                     <img src="https://openweathermap.org/img/wn/${weatherData.icon}@2x.png" 
                          alt="${weatherData.description}"
                          class="w-16 h-16">
-                    <p class="text-3xl font-semibold text-gray-900">${temperature}°C</p>
-                    <p class="text-sm text-gray-600">Feels like ${feelsLike}°C</p>
+                    <div class="text-3xl font-semibold text-gray-900 mb-1">
+                        ${tempC}°C / ${tempF}°F
+                    </div>
+                    <div class="text-sm text-gray-600 mb-2">
+                        Feels like ${feelsLikeC}°C / ${feelsLikeF}°F
+                    </div>
                     <p class="text-sm capitalize text-gray-700">${weatherData.description}</p>
                 </div>
                 <div class="text-sm text-gray-600 border-l pl-4">

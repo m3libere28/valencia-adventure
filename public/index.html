@@ -25,6 +25,7 @@
     <script src="./js/housing.js" defer></script>
     <script src="./js/currency.js" defer></script>
     <script src="./js/clothing.js" defer></script>
+    <script src="./js/countdown.js" defer></script>
     
     <!-- Auth0 SDK -->
     <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
@@ -502,138 +503,42 @@
     </div>
 
     <!-- Hero Section -->
-    <section class="relative h-screen overflow-hidden">
-        <!-- Geometric Background -->
-        <div class="absolute inset-0 geometric-hero">
-            <!-- Animated shapes -->
-            <div class="shape shape-1"></div>
-            <div class="shape shape-2"></div>
-            <div class="shape shape-3"></div>
-            <div class="shape shape-4"></div>
-            <div class="shape shape-5"></div>
-            <!-- Gradient overlay -->
-            <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-transparent"></div>
+    <section id="hero" class="relative h-screen flex items-center justify-center text-white overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <video autoplay muted loop class="object-cover w-full h-full">
+                <source src="assets/valencia-hero.mp4" type="video/mp4">
+            </video>
+            <div class="absolute inset-0 bg-black opacity-50"></div>
         </div>
         
-        <!-- Hero Content -->
-        <div class="relative h-full flex flex-col justify-center items-center text-center text-white px-4">
-            <h1 class="text-5xl md:text-7xl font-bold mb-4 tracking-wider text-shadow-lg animate-fade-in">
-                Valencia Adventure
-            </h1>
-            <p class="text-xl md:text-2xl mb-8 max-w-2xl text-shadow-md animate-fade-in-delay">
-                Join the Medaglia-Asprilla family on our journey to a new life in beautiful Valencia, Spain
-            </p>
-            <a href="#about" class="bg-white/20 backdrop-blur-sm text-white px-8 py-3 rounded-full 
-                                  hover:bg-white/30 transition-all duration-300 animate-fade-in-delay-2">
-                Discover Our Story
-            </a>
+        <div class="relative z-10 text-center">
+            <h1 class="text-5xl md:text-7xl font-bold mb-8 animate-fade-in">Valencia Adventure</h1>
+            <p class="text-xl md:text-2xl mb-12 animate-fade-in-delay">Join our journey to a new life in Spain</p>
+            
+            <!-- Countdown Timer -->
+            <div id="countdown" class="max-w-4xl mx-auto bg-black bg-opacity-50 rounded-xl p-6 backdrop-blur-sm">
+                <div class="animate-pulse flex flex-col space-y-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                            <div class="h-10 bg-white bg-opacity-20 rounded"></div>
+                            <div class="h-4 bg-white bg-opacity-20 rounded mt-2"></div>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                            <div class="h-10 bg-white bg-opacity-20 rounded"></div>
+                            <div class="h-4 bg-white bg-opacity-20 rounded mt-2"></div>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                            <div class="h-10 bg-white bg-opacity-20 rounded"></div>
+                            <div class="h-4 bg-white bg-opacity-20 rounded mt-2"></div>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
+                            <div class="h-10 bg-white bg-opacity-20 rounded"></div>
+                            <div class="h-4 bg-white bg-opacity-20 rounded mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <style>
-            .geometric-hero {
-                background: #FF4E50;  /* Vibrant Spanish red */
-                overflow: hidden;
-            }
-
-            .shape {
-                position: absolute;
-                opacity: 0.9;
-                animation: float 20s infinite;
-            }
-
-            .shape-1 {
-                width: 400px;
-                height: 400px;
-                background: #FC913A;  /* Warm Spanish orange */
-                clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-                top: -100px;
-                left: -100px;
-                animation-delay: -5s;
-            }
-
-            .shape-2 {
-                width: 300px;
-                height: 300px;
-                background: #F9D423;  /* Spanish sun yellow */
-                clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
-                top: 50%;
-                right: -50px;
-                animation-delay: -2s;
-            }
-
-            .shape-3 {
-                width: 250px;
-                height: 250px;
-                background: #4B7BE5;  /* Mediterranean blue */
-                clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
-                bottom: -50px;
-                left: 25%;
-                animation-delay: -8s;
-            }
-
-            .shape-4 {
-                width: 350px;
-                height: 350px;
-                background: #6DD5FA;  /* Valencia sky blue */
-                clip-path: polygon(50% 0%, 90% 20%, 100% 60%, 75% 100%, 25% 100%, 0% 60%, 10% 20%);
-                top: 20%;
-                left: 60%;
-                animation-delay: -4s;
-            }
-
-            .shape-5 {
-                width: 200px;
-                height: 200px;
-                background: #FF9966;  /* Terracotta */
-                clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
-                top: 40%;
-                left: 20%;
-                animation-delay: -6s;
-            }
-
-            @keyframes float {
-                0%, 100% {
-                    transform: translateY(0) rotate(0deg) scale(1);
-                }
-                25% {
-                    transform: translateY(-20px) rotate(5deg) scale(1.05);
-                }
-                50% {
-                    transform: translateY(10px) rotate(-3deg) scale(0.95);
-                }
-                75% {
-                    transform: translateY(-15px) rotate(2deg) scale(1.02);
-                }
-            }
-
-            .text-shadow-lg {
-                text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-            }
-            
-            .text-shadow-md {
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-            }
-            
-            .animate-fade-in {
-                opacity: 0;
-                animation: fade-in 1s forwards;
-            }
-            
-            .animate-fade-in-delay {
-                opacity: 0;
-                animation: fade-in 1s forwards 0.3s;
-            }
-            
-            .animate-fade-in-delay-2 {
-                opacity: 0;
-                animation: fade-in 1s forwards 0.6s;
-            }
-            
-            @keyframes fade-in {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-        </style>
     </section>
 
     <!-- Introduction Section -->
