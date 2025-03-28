@@ -17,7 +17,7 @@ CORS(app, resources={
             "http://localhost:8000",
             "https://personal-website-taupe-pi-67.vercel.app"
         ],
-        "methods": ["GET", "POST", "OPTIONS"],
+        "methods": ["GET", "POST", "OPTIONS", "DELETE"],
         "allow_headers": ["Content-Type", "Authorization"]
     }
 })
@@ -40,6 +40,12 @@ try:
 except Exception as e:
     print(f"MongoDB connection error: {str(e)}", file=sys.stderr)
     raise e
+
+def get_data_file(filename):
+    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+    return os.path.join(data_dir, filename)
 
 @app.route('/')
 def index():
@@ -96,6 +102,53 @@ def get_entries():
             "success": False, 
             "message": f"Failed to retrieve entries: {error_msg}"
         }), 400
+
+@app.route('/api/journal/entries', methods=['GET'])
+def get_journal_entries():
+    try:
+        with open(get_data_file('journal.json'), 'r') as f:
+            return jsonify({"success": True, "entries": json.load(f)})
+    except FileNotFoundError:
+        return jsonify({"success": True, "entries": []})
+
+@app.route('/api/journal/entries', methods=['POST'])
+def add_journal_entry():
+    entry = request.json
+    try:
+        entries = []
+        try:
+            with open(get_data_file('journal.json'), 'r') as f:
+                entries = json.load(f)
+        except FileNotFoundError:
+            pass
+        
+        entries.append(entry)
+        
+        with open(get_data_file('journal.json'), 'w') as f:
+            json.dump(entries, f)
+        
+        return jsonify({"success": True, "message": "Journal entry added successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+@app.route('/api/journal/entries/<int:entry_id>', methods=['DELETE'])
+def delete_journal_entry(entry_id):
+    try:
+        entries = []
+        try:
+            with open(get_data_file('journal.json'), 'r') as f:
+                entries = json.load(f)
+        except FileNotFoundError:
+            return jsonify({"success": False, "message": "No entries found"})
+        
+        entries = [entry for entry in entries if entry['id'] != entry_id]
+        
+        with open(get_data_file('journal.json'), 'w') as f:
+            json.dump(entries, f)
+        
+        return jsonify({"success": True, "message": "Journal entry deleted successfully"})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 
 # For local development
 if __name__ == '__main__':

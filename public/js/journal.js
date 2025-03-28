@@ -8,7 +8,12 @@ let journalEntries = [];
 // Load journal entries from server
 async function loadJournalEntries() {
     try {
-        const response = await fetch('/api/submit-form');
+        const token = await getAccessToken();
+        const response = await fetch('/api/journal/entries', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         const data = await response.json();
         if (data.success) {
             journalEntries = data.entries || [];
@@ -94,97 +99,91 @@ async function addJournalEntry(e) {
 
         console.log('Submitting entry:', entry);
 
-        const response = await fetch('/api/submit-form', {
+        const token = await getAccessToken();
+        const response = await fetch('/api/journal/entries', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(entry)
         });
 
-        console.log('Response status:', response.status);
         const data = await response.json();
-        console.log('Response data:', data);
-
         if (data.success) {
             journalEntries.push(entry);
             addMarkerToMap(entry);
             updateJournalEntries();
             form.reset();
-            alert('Entry saved successfully!');
+            alert('Journal entry added successfully!');
         } else {
-            console.error('Server error:', data.message);
-            alert('Failed to save entry: ' + data.message);
+            throw new Error(data.message);
         }
     } catch (error) {
-        console.error('Error saving entry:', error);
-        alert('Failed to save entry: ' + error.message);
+        console.error('Error adding journal entry:', error);
+        alert('Error adding journal entry: ' + error.message);
     }
 }
 
 // Update journal entries display
 function updateJournalEntries() {
-    const container = document.getElementById('journal-entries');
-    container.innerHTML = '';
+    const entriesContainer = document.getElementById('journal-entries');
+    if (!entriesContainer) return;
 
-    journalEntries
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .forEach(entry => {
-            const card = document.createElement('div');
-            card.className = 'bg-white rounded-xl shadow-lg p-6 mb-6 transform hover:scale-105 transition-transform duration-300';
-            card.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 class="text-xl font-semibold mb-2">${entry.title}</h3>
-                        <p class="text-gray-600">
-                            <i class="fas fa-calendar-alt mr-2"></i>${new Date(entry.date).toLocaleDateString()}
-                        </p>
-                        <p class="text-gray-600">
-                            <i class="fas fa-map-marker-alt mr-2"></i>${entry.locationName}
-                        </p>
-                    </div>
-                    <div class="flex space-x-2">
-                        <span class="text-gray-600">
-                            <i class="fas fa-${getWeatherIcon(entry.weather)} mr-1"></i>${entry.weather}
-                        </span>
-                        <span class="text-gray-600">
-                            <i class="fas fa-${getMoodIcon(entry.mood)} mr-1"></i>${entry.mood}
-                        </span>
-                    </div>
+    entriesContainer.innerHTML = '';
+    const sortedEntries = [...journalEntries].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    sortedEntries.forEach(entry => {
+        const entryElement = document.createElement('div');
+        entryElement.className = 'bg-white rounded-lg shadow-md p-6 mb-4 hover:shadow-lg transition-shadow';
+        entryElement.innerHTML = `
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">${entry.title}</h3>
+                    <p class="text-gray-600 text-sm mb-2">${new Date(entry.date).toLocaleDateString()}</p>
+                    <p class="text-gray-600 text-sm mb-4">
+                        <i class="fas fa-map-marker-alt text-red-500 mr-2"></i>${entry.locationName}
+                    </p>
                 </div>
-                ${entry.photos && entry.photos.length > 0 ? `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        ${entry.photos.map(photo => `
-                            <div class="relative group">
-                                <img src="${photo}" class="w-full h-48 object-cover rounded-lg" alt="Journal photo">
-                                <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
-                                    <button onclick="viewPhoto('${photo}')" class="text-white hover:text-blue-200">
-                                        <i class="fas fa-expand-alt text-2xl"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : ''}
-                <p class="text-gray-700 mb-4 whitespace-pre-line">${entry.notes}</p>
-                <div class="flex flex-wrap gap-2">
+                <div class="space-x-2">
+                    <button onclick="showOnMap([${entry.location}])" class="text-blue-500 hover:text-blue-700">
+                        <i class="fas fa-map"></i>
+                    </button>
+                    <button onclick="deleteEntry(${entry.id})" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            ${entry.photos && entry.photos.length > 0 ? `
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                    ${entry.photos.map(photo => `
+                        <img src="${photo}" 
+                             onclick="viewPhoto('${photo}')"
+                             class="w-full h-32 object-cover rounded cursor-pointer hover:opacity-75 transition-opacity"
+                             alt="Journal photo">
+                    `).join('')}
+                </div>
+            ` : ''}
+            
+            <p class="text-gray-700 mb-4">${entry.notes}</p>
+            
+            <div class="flex items-center justify-between text-sm text-gray-600">
+                <div>
+                    <span class="mr-4">${getWeatherIcon(entry.weather)} ${entry.weather}</span>
+                    <span>${getMoodIcon(entry.mood)} ${entry.mood}</span>
+                </div>
+                <div class="space-x-2">
                     ${entry.tags.map(tag => `
-                        <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                        <span class="inline-block bg-gray-200 rounded-full px-3 py-1 text-xs">
                             #${tag}
                         </span>
                     `).join('')}
                 </div>
-                <div class="mt-4 flex justify-end space-x-2">
-                    <button onclick="showOnMap([${entry.location}])" class="text-blue-500 hover:text-blue-700">
-                        <i class="fas fa-map-marker-alt mr-1"></i>View on Map
-                    </button>
-                    <button onclick="deleteEntry(${entry.id})" class="text-red-500 hover:text-red-700">
-                        <i class="fas fa-trash mr-1"></i>Delete
-                    </button>
-                </div>
-            `;
-            container.appendChild(card);
-        });
+            </div>
+        `;
+        entriesContainer.appendChild(entryElement);
+    });
 }
 
 // View photo in lightbox
@@ -192,108 +191,153 @@ function viewPhoto(photoUrl) {
     const lightbox = document.createElement('div');
     lightbox.className = 'fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50';
     lightbox.onclick = () => lightbox.remove();
-    lightbox.innerHTML = `
-        <img src="${photoUrl}" class="max-h-[90vh] max-w-[90vw] object-contain">
-    `;
+    
+    const img = document.createElement('img');
+    img.src = photoUrl;
+    img.className = 'max-w-full max-h-full object-contain';
+    
+    lightbox.appendChild(img);
     document.body.appendChild(lightbox);
 }
 
 // Show entry on map
 function showOnMap(location) {
+    if (!location || !journalMap) return;
     journalMap.setView(location, 15);
-    journalMarkers.forEach(marker => {
-        if (marker.getLatLng().lat === location[0] && marker.getLatLng().lng === location[1]) {
-            marker.openPopup();
-        }
-    });
+    const marker = journalMarkers.find(m => 
+        m.getLatLng().lat === location[0] && 
+        m.getLatLng().lng === location[1]
+    );
+    if (marker) marker.openPopup();
 }
 
 // Delete entry
-function deleteEntry(id) {
-    if (confirm('Are you sure you want to delete this journal entry?')) {
-        journalEntries = journalEntries.filter(entry => entry.id !== id);
-        updateJournalEntries();
+async function deleteEntry(id) {
+    if (!confirm('Are you sure you want to delete this entry?')) return;
+    
+    try {
+        const token = await getAccessToken();
+        const response = await fetch(`/api/journal/entries/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            journalEntries = journalEntries.filter(entry => entry.id !== id);
+            // Remove marker from map
+            const markerIndex = journalMarkers.findIndex(m => {
+                const entry = journalEntries.find(e => e.id === id);
+                return entry && m.getLatLng().lat === entry.location[0] && m.getLatLng().lng === entry.location[1];
+            });
+            if (markerIndex !== -1) {
+                journalMarkers[markerIndex].remove();
+                journalMarkers.splice(markerIndex, 1);
+            }
+            updateJournalEntries();
+            alert('Entry deleted successfully!');
+        } else {
+            throw new Error(data.message);
+        }
+    } catch (error) {
+        console.error('Error deleting entry:', error);
+        alert('Error deleting entry: ' + error.message);
     }
 }
 
 // Utility functions
 function getWeatherIcon(weather) {
     const icons = {
-        'Sunny': 'sun',
-        'Cloudy': 'cloud',
-        'Rainy': 'cloud-rain',
-        'Stormy': 'bolt',
-        'Snowy': 'snowflake'
+        'Sunny': '☀️',
+        'Cloudy': '☁️',
+        'Rainy': '🌧️',
+        'Stormy': '⛈️',
+        'Snowy': '🌨️',
+        'Windy': '💨'
     };
-    return icons[weather] || 'sun';
+    return icons[weather] || '🌤️';
 }
 
 function getMoodIcon(mood) {
     const icons = {
-        'Happy': 'smile',
-        'Excited': 'grin-stars',
-        'Relaxed': 'smile-beam',
-        'Tired': 'tired',
-        'Sad': 'frown'
+        'Happy': '😊',
+        'Excited': '🤩',
+        'Relaxed': '😌',
+        'Tired': '😴',
+        'Sad': '😢',
+        'Anxious': '😰'
     };
-    return icons[mood] || 'smile';
+    return icons[mood] || '😐';
 }
 
 // Export journal entries
 function exportJournal() {
     const dataStr = JSON.stringify(journalEntries, null, 2);
-    const blob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `family-journal-${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+    
+    const exportName = 'valencia_journal_' + new Date().toISOString().split('T')[0] + '.json';
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportName);
+    linkElement.click();
 }
 
 // Import journal entries
-function importJournal(event) {
+async function importJournal(event) {
     const file = event.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const importedData = JSON.parse(e.target.result);
-                journalEntries = importedData;
-                
-                // Clear existing markers
-                journalMarkers.forEach(marker => journalMap.removeLayer(marker));
-                journalMarkers = [];
-                
-                // Add new markers
-                journalEntries.forEach(entry => {
-                    if (entry.location) {
-                        addMarkerToMap(entry);
-                    }
-                });
-                
-                updateJournalEntries();
-                alert('Journal entries imported successfully!');
-            } catch (error) {
-                alert('Error importing journal entries. Please check the file format.');
+    if (!file) return;
+    
+    try {
+        const text = await file.text();
+        const importedEntries = JSON.parse(text);
+        
+        if (!Array.isArray(importedEntries)) {
+            throw new Error('Invalid journal format');
+        }
+        
+        // Validate each entry
+        importedEntries.forEach(entry => {
+            if (!entry.id || !entry.date || !entry.title || !entry.location) {
+                throw new Error('Invalid entry format');
             }
-        };
-        reader.readAsText(file);
+        });
+        
+        // Clear existing entries and markers
+        journalEntries = [];
+        journalMarkers.forEach(marker => marker.remove());
+        journalMarkers = [];
+        
+        // Add imported entries
+        journalEntries = importedEntries;
+        journalEntries.forEach(entry => {
+            if (entry.location) {
+                addMarkerToMap(entry);
+            }
+        });
+        
+        updateJournalEntries();
+        alert('Journal imported successfully!');
+    } catch (error) {
+        console.error('Error importing journal:', error);
+        alert('Error importing journal: ' + error.message);
     }
 }
 
 // Initialize when document is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('journal-form');
+    if (form) {
+        form.addEventListener('submit', addJournalEntry);
+    }
+    
+    const importInput = document.getElementById('import-journal');
+    if (importInput) {
+        importInput.addEventListener('change', importJournal);
+    }
+    
     loadJournalEntries();
     initJournalMap();
-    document.getElementById('journal-form').addEventListener('submit', addJournalEntry);
-    document.getElementById('import-journal').addEventListener('change', importJournal);
-    
-    // Handle map clicks for location selection
-    journalMap.on('click', function(e) {
-        const locationInput = document.querySelector('[name="location"]');
-        locationInput.value = `${e.latlng.lat},${e.latlng.lng}`;
-    });
 });
