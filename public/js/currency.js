@@ -1,36 +1,79 @@
-// Currency conversion functions
+// Currency conversion functionality
+const exchangeRates = {
+    EUR: 1,
+    USD: 1.08,
+    GBP: 0.85
+};
+
+let fromCurrency = 'USD';
+let toCurrency = 'EUR';
+
 function swapCurrencies() {
-    const fromCurrency = document.getElementById('fromCurrency');
-    const toCurrency = document.getElementById('toCurrency');
-    if (fromCurrency && toCurrency) {
-        const temp = fromCurrency.value;
-        fromCurrency.value = toCurrency.value;
-        toCurrency.value = temp;
+    [fromCurrency, toCurrency] = [toCurrency, fromCurrency];
+    
+    // Swap select values
+    const fromSelect = document.getElementById('from-currency');
+    const toSelect = document.getElementById('to-currency');
+    if (fromSelect && toSelect) {
+        [fromSelect.value, toSelect.value] = [toSelect.value, fromSelect.value];
+    }
+    
+    // Trigger conversion
+    convertCurrency();
+}
+
+function convertCurrency() {
+    const amount = parseFloat(document.getElementById('amount').value) || 0;
+    const result = document.getElementById('conversion-result');
+    
+    if (!result) return;
+
+    try {
+        // Convert to EUR first (base currency)
+        const amountInEUR = amount / exchangeRates[fromCurrency];
+        // Then convert to target currency
+        const finalAmount = amountInEUR * exchangeRates[toCurrency];
+        
+        result.textContent = formatCurrency(finalAmount, toCurrency);
+    } catch (error) {
+        console.error('Currency conversion error:', error);
+        result.textContent = 'Conversion error';
     }
 }
 
-// Initialize currency functionality
+function formatCurrency(amount, currency) {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency
+    }).format(amount);
+}
+
+// Initialize currency conversion
 document.addEventListener('DOMContentLoaded', () => {
-    const swapButton = document.getElementById('swapCurrencies');
-    if (swapButton) {
-        swapButton.addEventListener('click', swapCurrencies);
+    const fromSelect = document.getElementById('from-currency');
+    const toSelect = document.getElementById('to-currency');
+    const amountInput = document.getElementById('amount');
+    const swapButton = document.getElementById('swap-currencies');
+
+    if (fromSelect) {
+        fromSelect.addEventListener('change', (e) => {
+            fromCurrency = e.target.value;
+            convertCurrency();
+        });
     }
 
-    const convertForm = document.getElementById('currency-form');
-    if (convertForm) {
-        convertForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const amount = parseFloat(document.getElementById('amount').value);
-            const fromCurrency = document.getElementById('fromCurrency').value;
-            const toCurrency = document.getElementById('toCurrency').value;
-            
-            if (!isNaN(amount)) {
-                // For now, just show a placeholder conversion
-                const result = document.getElementById('conversionResult');
-                if (result) {
-                    result.textContent = `${amount} ${fromCurrency} = ${(amount * 1.1).toFixed(2)} ${toCurrency}`;
-                }
-            }
+    if (toSelect) {
+        toSelect.addEventListener('change', (e) => {
+            toCurrency = e.target.value;
+            convertCurrency();
         });
+    }
+
+    if (amountInput) {
+        amountInput.addEventListener('input', convertCurrency);
+    }
+
+    if (swapButton) {
+        swapButton.addEventListener('click', swapCurrencies);
     }
 });
