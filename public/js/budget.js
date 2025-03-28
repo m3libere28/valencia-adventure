@@ -14,6 +14,40 @@ const budgetCategories = {
 let currentBudget = 0;
 let expenses = [];
 
+// Initialize when Firebase is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Wait for Firebase to be ready
+    window.addEventListener('firebaseReady', () => {
+        // Listen for auth state changes
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                await loadBudgetData(user.uid);
+                updateBudgetDisplay();
+            } else {
+                resetBudgetData();
+            }
+        });
+    });
+
+    // Add form submit handlers
+    const budgetForm = document.getElementById('budget-form');
+    const expenseForm = document.getElementById('expense-form');
+
+    if (budgetForm) {
+        budgetForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await handleSetBudget();
+        });
+    }
+
+    if (expenseForm) {
+        expenseForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await addExpense();
+        });
+    }
+});
+
 // Helper functions
 async function loadBudgetData(userId) {
     try {
@@ -45,17 +79,6 @@ function resetBudgetData() {
     updateBudgetDisplay();
     updateExpensesDisplay();
 }
-
-// Initialize budget when auth state changes
-window.addEventListener('authStateChanged', (event) => {
-    const { isAuthenticated, user } = event.detail;
-    console.log('Auth state changed in budget.js:', isAuthenticated, user);
-    if (isAuthenticated && user) {
-        loadBudgetData(user.uid);
-    } else {
-        resetBudgetData();
-    }
-});
 
 async function addExpense() {
     const user = firebase.auth().currentUser;
@@ -215,25 +238,3 @@ async function deleteExpense(date) {
         showError('Failed to delete expense. Please try again.');
     }
 }
-
-// Add event listeners
-document.addEventListener('DOMContentLoaded', () => {
-    const expenseForm = document.getElementById('expense-form');
-    const budgetForm = document.getElementById('budget-form');
-
-    if (expenseForm) {
-        expenseForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            await addExpense();
-            expenseForm.reset();
-        });
-    }
-
-    if (budgetForm) {
-        budgetForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            await handleSetBudget();
-            budgetForm.reset();
-        });
-    }
-});

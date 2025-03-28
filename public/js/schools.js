@@ -1,16 +1,18 @@
 // Schools data
 let schoolsData = [];
 
-// Initialize schools when auth state changes
+// Initialize when Firebase is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // Listen for auth state changes
-    window.addEventListener('authStateChanged', async (event) => {
-        const { isAuthenticated, user } = event.detail;
-        if (isAuthenticated && user) {
-            await loadSchoolsData(user.uid);
-        } else {
-            resetSchoolsData();
-        }
+    // Wait for Firebase to be ready
+    window.addEventListener('firebaseReady', () => {
+        // Listen for auth state changes
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                await loadSchoolsData(user.uid);
+            } else {
+                resetSchoolsData();
+            }
+        });
     });
 });
 
