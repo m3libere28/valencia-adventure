@@ -288,105 +288,6 @@
         </style>
     </section>
 
-    <!-- Introduction Section -->
-    <section id="introduction" class="relative py-24 bg-gradient-to-br from-blue-50 to-purple-50 overflow-hidden">
-        <!-- Animated background elements -->
-        <div class="absolute inset-0 opacity-20">
-            <div class="animate-float-slow absolute top-10 left-10 w-64 h-64 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl"></div>
-            <div class="animate-float-medium absolute top-40 right-20 w-72 h-72 bg-purple-400 rounded-full mix-blend-multiply filter blur-xl"></div>
-            <div class="animate-float-fast absolute bottom-10 left-1/3 w-56 h-56 bg-pink-400 rounded-full mix-blend-multiply filter blur-xl"></div>
-        </div>
-
-        <div class="max-w-7xl mx-auto px-4 relative">
-            <!-- Grid layout for content -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-                <!-- Left column: Text content -->
-                <div class="space-y-8 opacity-0" id="intro-text">
-                    <h2 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        Welcome to Our Journey
-                    </h2>
-                    <p class="text-xl text-gray-700 leading-relaxed">
-                        We're the Medaglia-Asprilla family - Emily, Helbert, and little Michelangelo - embarking on an exciting adventure to Valencia, Spain. This website is our digital home where we'll document our experiences, plan our move, and share our story with family and friends.
-                    </p>
-                    <div class="flex flex-wrap gap-6">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                                <i class="fas fa-calendar-alt text-2xl text-blue-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-900">Duration</h3>
-                                <p class="text-gray-600">16 months</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                                <i class="fas fa-map-marker-alt text-2xl text-purple-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-900">Location</h3>
-                                <p class="text-gray-600">Valencia, Spain</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center">
-                                <i class="fas fa-users text-2xl text-pink-600"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-semibold text-gray-900">Family</h3>
-                                <p class="text-gray-600">Adventure of 3</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right column: Interactive elements -->
-                <div class="relative opacity-0" id="intro-visual">
-                    <!-- Spain map outline SVG -->
-                    <div class="w-full aspect-square relative">
-                        <svg viewBox="0 0 200 200" class="w-full h-full transform rotate-12">
-                            <path d="M40,100 Q60,60 100,40 Q140,60 160,100 Q140,140 100,160 Q60,140 40,100 Z" 
-                                  class="fill-none stroke-blue-600 stroke-2"
-                                  id="spain-path" />
-                            <!-- Animated dot -->
-                            <circle r="4" fill="#EC4899" id="moving-dot">
-                                <animateMotion dur="8s" repeatCount="indefinite">
-                                    <mpath href="#spain-path" />
-                                </animateMotion>
-                            </circle>
-                        </svg>
-                        <!-- Valencia marker -->
-                        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                            <div class="relative">
-                                <div class="w-4 h-4 bg-red-500 rounded-full"></div>
-                                <div class="absolute top-0 left-0 w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom stats -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 opacity-0" id="intro-stats">
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-blue-600" id="days-counter">0</div>
-                    <p class="text-gray-600">Days Until Move</p>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-purple-600" id="tasks-counter">0</div>
-                    <p class="text-gray-600">Tasks Completed</p>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-pink-600" id="places-counter">0</div>
-                    <p class="text-gray-600">Places to Visit</p>
-                </div>
-                <div class="text-center">
-                    <div class="text-3xl font-bold text-indigo-600" id="memories-counter">0</div>
-                    <p class="text-gray-600">Memories Made</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Animate introduction elements when they come into view
@@ -1141,10 +1042,6 @@
             </div>
         </div>
     </section>
-
-    <script src="./js/schools.js"></script>
-    <script src="./js/journal.js"></script>
-    <script src="./js/budget.js"></script>
 
     <!-- Budget Section -->
     <section id="budget" class="py-20 bg-gray-50">
