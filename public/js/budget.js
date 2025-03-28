@@ -175,18 +175,20 @@ function showSuccess(message) {
 document.addEventListener('DOMContentLoaded', () => {
     const expenseForm = document.getElementById('expense-form');
     const budgetForm = document.getElementById('budget-form');
-    
+
     if (expenseForm) {
-        expenseForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            addExpense(e);
+        expenseForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await addExpense(event);
+            expenseForm.reset();
         });
     }
-    
+
     if (budgetForm) {
-        budgetForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            handleSetBudget(e);
+        budgetForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await handleSetBudget(event);
+            budgetForm.reset();
         });
     }
 });

@@ -35,8 +35,6 @@ function resetJournalEntries() {
 }
 
 async function addJournalEntry(event) {
-    event.preventDefault();
-    
     const user = firebase.auth().currentUser;
     if (!user) {
         showError('Please login to add journal entries');
@@ -57,7 +55,6 @@ async function addJournalEntry(event) {
         });
         journalEntries.push(entry);
         updateJournalDisplay();
-        form.reset();
         showSuccess('Journal entry added successfully!');
     } catch (error) {
         console.error('Error adding journal entry:', error);
@@ -181,6 +178,10 @@ function showSuccess(message) {
 document.addEventListener('DOMContentLoaded', () => {
     const journalForm = document.getElementById('journal-form');
     if (journalForm) {
-        journalForm.addEventListener('submit', addJournalEntry);
+        journalForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await addJournalEntry(event);
+            journalForm.reset();
+        });
     }
 });

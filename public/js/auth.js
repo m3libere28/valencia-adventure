@@ -125,8 +125,18 @@ function updateUI(user) {
 auth.onAuthStateChanged(user => {
     console.log('Auth state changed:', user ? user.email : 'logged out');
     updateUI(user);
+    
+    // Dispatch custom event for other scripts
+    window.dispatchEvent(new CustomEvent('authStateChanged', {
+        detail: {
+            isAuthenticated: !!user,
+            user: user
+        }
+    }));
 });
 
 // Add event listeners
-if (loginBtn) loginBtn.addEventListener('click', login);
-if (logoutBtn) logoutBtn.addEventListener('click', logout);
+document.addEventListener('DOMContentLoaded', () => {
+    if (loginBtn) loginBtn.addEventListener('click', login);
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+});
