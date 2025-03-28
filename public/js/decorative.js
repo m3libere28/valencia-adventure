@@ -69,4 +69,45 @@ function addAnimationStyles() {
 document.addEventListener('DOMContentLoaded', () => {
     addAnimationStyles();
     createFloatingElements();
+    
+    // Check if GSAP is available
+    if (typeof gsap !== 'undefined') {
+        // Animate hero section
+        gsap.from('.hero-content', {
+            duration: 1,
+            y: 50,
+            opacity: 0,
+            ease: 'power3.out'
+        });
+
+        // Animate timeline items
+        gsap.from('.timeline-item', {
+            duration: 0.8,
+            y: 30,
+            opacity: 0,
+            stagger: 0.2,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: '.timeline',
+                start: 'top center+=100',
+                toggleActions: 'play none none reverse'
+            }
+        });
+
+        // Animate features
+        gsap.from('.feature-card', {
+            duration: 0.6,
+            y: 40,
+            opacity: 0,
+            stagger: 0.15,
+            ease: 'power2.out',
+            scrollTrigger: {
+                trigger: '.features',
+                start: 'top center+=100',
+                toggleActions: 'play none none reverse'
+            }
+        });
+    } else {
+        console.log('GSAP not loaded, skipping animations');
+    }
 });

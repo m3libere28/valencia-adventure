@@ -3,6 +3,11 @@ function celsiusToFahrenheit(celsius) {
     return Math.round((celsius * 9/5) + 32);
 }
 
+// Weather API configuration
+const WEATHER_API_KEY = '4f3c7a75d5msh45db6f537276fd4p1b03e8jsn82d056dab4a1';
+const WEATHER_API_HOST = 'weatherapi-com.p.rapidapi.com';
+const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
+
 // Helper function to make authenticated API calls
 async function apiGet(endpoint) {
     try {
@@ -17,6 +22,49 @@ async function apiGet(endpoint) {
         console.error('API Error:', error);
         throw error;
     }
+}
+
+async function getWeather() {
+    const city = 'Valencia,Spain';
+    
+    try {
+        const response = await fetch(`${CORS_PROXY}https://${WEATHER_API_HOST}/current.json?q=${encodeURIComponent(city)}`, {
+            method: 'GET',
+            headers: {
+                'X-RapidAPI-Key': WEATHER_API_KEY,
+                'X-RapidAPI-Host': WEATHER_API_HOST
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Weather API request failed');
+        }
+
+        const data = await response.json();
+        updateWeatherUI(data);
+    } catch (error) {
+        console.error('Error fetching weather:', error);
+        const weatherContainer = document.getElementById('weather-container');
+        if (weatherContainer) {
+            weatherContainer.innerHTML = '<p class="text-gray-600">Weather data unavailable</p>';
+        }
+    }
+}
+
+function updateWeatherUI(data) {
+    const weatherContainer = document.getElementById('weather-container');
+    if (!weatherContainer) return;
+
+    const current = data.current;
+    weatherContainer.innerHTML = `
+        <div class="flex items-center space-x-4">
+            <img src="${current.condition.icon}" alt="${current.condition.text}" class="w-12 h-12">
+            <div>
+                <div class="text-2xl font-semibold">${current.temp_c}°C</div>
+                <div class="text-gray-600">${current.condition.text}</div>
+            </div>
+        </div>
+    `;
 }
 
 // Weather data management
@@ -76,7 +124,11 @@ async function updateWeatherDisplay() {
 }
 
 // Update weather every 30 minutes
-setInterval(updateWeatherDisplay, 30 * 60 * 1000);
-
-// Initial weather update
-document.addEventListener('DOMContentLoaded', updateWeatherDisplay);
+document.addEventListener('DOMContentLoaded', () => {
+    getWeather();
+    updateWeatherDisplay();
+    setInterval(() => {
+        getWeather();
+        updateWeatherDisplay();
+    }, 30 * 60 * 1000);
+});

@@ -8,7 +8,7 @@ const API_BASE_URL = window.location.hostname === 'm3libere28.github.io'
     : window.location.origin;
 
 // Initialize Firestore
-const db = firebase.firestore();
+const journalDb = firebase.firestore();
 
 // Initialize the journal feature
 async function initializeJournal() {
@@ -47,7 +47,7 @@ async function loadJournalEntries() {
 
     try {
         console.log('Loading journal entries...');
-        const snapshot = await db.collection('users')
+        const snapshot = await journalDb.collection('users')
             .doc(window.currentUser.uid)
             .collection('journal')
             .orderBy('createdAt', 'desc')
@@ -123,7 +123,7 @@ async function handleJournalSubmit(event) {
         };
 
         // Add entry to Firestore
-        await db.collection('users')
+        await journalDb.collection('users')
             .doc(window.currentUser.uid)
             .collection('journal')
             .add({
@@ -163,7 +163,7 @@ window.deleteJournalEntry = async function(entryId) {
 
     try {
         console.log('Deleting journal entry:', entryId);
-        await db.collection('users')
+        await journalDb.collection('users')
             .doc(window.currentUser.uid)
             .collection('journal')
             .doc(entryId)
@@ -188,7 +188,7 @@ window.exportJournal = async function() {
 
     try {
         console.log('Exporting journal entries...');
-        const snapshot = await db.collection('users')
+        const snapshot = await journalDb.collection('users')
             .doc(window.currentUser.uid)
             .collection('journal')
             .orderBy('createdAt', 'desc')
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 console.log('Saving journal entry...');
                 // Add entry to Firestore
-                await db.collection('users')
+                await journalDb.collection('users')
                     .doc(window.currentUser.uid)
                     .collection('journal')
                     .add({
