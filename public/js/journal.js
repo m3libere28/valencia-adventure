@@ -1,6 +1,3 @@
-// Get Firestore instance from shared db.js
-const db = window.db;
-
 // Journal management
 let journalEntries = [];
 
@@ -36,12 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadJournalEntries(userId) {
     console.log('Loading journal entries for user:', userId);
     try {
-        const doc = await db.collection('journals').doc(userId).get();
+        const doc = await window.db.collection('journals').doc(userId).get();
         if (doc.exists) {
             journalEntries = doc.data().entries || [];
         } else {
             // Create new journal document for user
-            await db.collection('journals').doc(userId).set({ entries: [] });
+            await window.db.collection('journals').doc(userId).set({ entries: [] });
             journalEntries = [];
         }
         updateJournalDisplay();
@@ -85,7 +82,7 @@ async function addJournalEntry() {
         journalEntries.push(entry);
 
         // Update Firestore
-        await db.collection('journals').doc(user.uid).update({
+        await window.db.collection('journals').doc(user.uid).update({
             entries: firebase.firestore.FieldValue.arrayUnion(entry)
         });
 
@@ -145,7 +142,7 @@ async function deleteJournalEntry(date) {
         journalEntries = journalEntries.filter(e => e.date !== date);
 
         // Update Firestore
-        await db.collection('journals').doc(user.uid).update({
+        await window.db.collection('journals').doc(user.uid).update({
             entries: firebase.firestore.FieldValue.arrayRemove(entry)
         });
 

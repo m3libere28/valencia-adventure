@@ -1,6 +1,3 @@
-// Get Firestore instance from shared db.js
-const db = window.db;
-
 // Budget categories with icons and colors
 const budgetCategories = {
     housing: { icon: '🏠', color: '#4CAF50' },
@@ -20,14 +17,14 @@ let expenses = [];
 // Helper functions
 async function loadBudgetData(userId) {
     try {
-        const doc = await db.collection('budgets').doc(userId).get();
+        const doc = await window.db.collection('budgets').doc(userId).get();
         if (doc.exists) {
             const data = doc.data();
             currentBudget = data.budget || 0;
             expenses = data.expenses || [];
         } else {
             // Create new budget document for user
-            await db.collection('budgets').doc(userId).set({
+            await window.db.collection('budgets').doc(userId).set({
                 budget: 0,
                 expenses: []
             });
@@ -81,7 +78,7 @@ async function addExpense() {
         const expense = { amount, category, description, date };
         expenses.push(expense);
 
-        await db.collection('budgets').doc(user.uid).update({
+        await window.db.collection('budgets').doc(user.uid).update({
             expenses: firebase.firestore.FieldValue.arrayUnion(expense)
         });
 
@@ -110,7 +107,7 @@ async function handleSetBudget() {
         }
 
         currentBudget = amount;
-        await db.collection('budgets').doc(user.uid).update({
+        await window.db.collection('budgets').doc(user.uid).update({
             budget: amount
         });
 
@@ -205,7 +202,7 @@ async function deleteExpense(date) {
         const expense = expenses.find(e => e.date === date);
         if (!expense) return;
 
-        await db.collection('budgets').doc(user.uid).update({
+        await window.db.collection('budgets').doc(user.uid).update({
             expenses: firebase.firestore.FieldValue.arrayRemove(expense)
         });
 
