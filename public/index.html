@@ -504,11 +504,19 @@
 
     <!-- Hero Section -->
     <section id="hero" class="relative h-screen flex items-center justify-center text-white overflow-hidden">
-        <div class="absolute inset-0 z-0">
-            <video autoplay muted loop class="object-cover w-full h-full">
-                <source src="assets/valencia-hero.mp4" type="video/mp4">
-            </video>
-            <div class="absolute inset-0 bg-black opacity-50"></div>
+        <!-- Geometric Background -->
+        <div class="absolute inset-0 bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900">
+            <!-- Inspired by Valencia's City of Arts and Sciences -->
+            <div class="geometric-shapes">
+                <div class="shape shape-1"></div>
+                <div class="shape shape-2"></div>
+                <div class="shape shape-3"></div>
+                <div class="shape shape-4"></div>
+                <div class="shape shape-5"></div>
+                <div class="shape shape-6"></div>
+            </div>
+            <!-- Overlay gradient -->
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/30"></div>
         </div>
         
         <div class="relative z-10 text-center">
@@ -516,29 +524,170 @@
             <p class="text-xl md:text-2xl mb-12 animate-fade-in-delay">Join our journey to a new life in Spain</p>
             
             <!-- Countdown Timer -->
-            <div id="countdown" class="max-w-4xl mx-auto bg-black bg-opacity-50 rounded-xl p-6 backdrop-blur-sm">
+            <div id="countdown" class="max-w-4xl mx-auto bg-white/10 rounded-xl p-6 backdrop-blur-md">
                 <div class="animate-pulse flex flex-col space-y-4">
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                            <div class="h-10 bg-white bg-opacity-20 rounded"></div>
-                            <div class="h-4 bg-white bg-opacity-20 rounded mt-2"></div>
+                        <div class="bg-white/20 rounded-lg p-4">
+                            <div class="h-10 bg-white/20 rounded"></div>
+                            <div class="h-4 bg-white/20 rounded mt-2"></div>
                         </div>
-                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                            <div class="h-10 bg-white bg-opacity-20 rounded"></div>
-                            <div class="h-4 bg-white bg-opacity-20 rounded mt-2"></div>
+                        <div class="bg-white/20 rounded-lg p-4">
+                            <div class="h-10 bg-white/20 rounded"></div>
+                            <div class="h-4 bg-white/20 rounded mt-2"></div>
                         </div>
-                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                            <div class="h-10 bg-white bg-opacity-20 rounded"></div>
-                            <div class="h-4 bg-white bg-opacity-20 rounded mt-2"></div>
+                        <div class="bg-white/20 rounded-lg p-4">
+                            <div class="h-10 bg-white/20 rounded"></div>
+                            <div class="h-4 bg-white/20 rounded mt-2"></div>
                         </div>
-                        <div class="bg-white bg-opacity-20 rounded-lg p-4">
-                            <div class="h-10 bg-white bg-opacity-20 rounded"></div>
-                            <div class="h-4 bg-white bg-opacity-20 rounded mt-2"></div>
+                        <div class="bg-white/20 rounded-lg p-4">
+                            <div class="h-10 bg-white/20 rounded"></div>
+                            <div class="h-4 bg-white/20 rounded mt-2"></div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <style>
+            .geometric-shapes {
+                position: absolute;
+                inset: 0;
+                overflow: hidden;
+            }
+
+            .shape {
+                position: absolute;
+                opacity: 0.6;
+                animation: float 20s infinite;
+                backdrop-filter: blur(8px);
+                background: linear-gradient(45deg, rgba(255,255,255,0.2), rgba(255,255,255,0.1));
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+
+            .shape-1 {
+                width: 600px;
+                height: 600px;
+                top: -20%;
+                left: -10%;
+                border-radius: 43% 57% 70% 30% / 45% 45% 55% 55%;
+                transform-origin: 50% 50%;
+                animation: morph1 15s linear infinite;
+            }
+
+            .shape-2 {
+                width: 500px;
+                height: 500px;
+                top: 60%;
+                right: -10%;
+                border-radius: 70% 30% 30% 70% / 60% 40% 60% 40%;
+                transform-origin: 50% 50%;
+                animation: morph2 12s linear infinite;
+            }
+
+            .shape-3 {
+                width: 400px;
+                height: 400px;
+                bottom: 10%;
+                left: 20%;
+                border-radius: 50% 50% 20% 80% / 25% 80% 20% 75%;
+                transform-origin: 50% 50%;
+                animation: morph3 18s linear infinite;
+            }
+
+            .shape-4 {
+                width: 300px;
+                height: 300px;
+                top: 30%;
+                right: 20%;
+                border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+                transform-origin: 50% 50%;
+                animation: morph4 20s linear infinite;
+            }
+
+            .shape-5 {
+                width: 350px;
+                height: 350px;
+                bottom: 30%;
+                left: 5%;
+                border-radius: 35% 65% 65% 35% / 35% 65% 35% 65%;
+                transform-origin: 50% 50%;
+                animation: morph5 25s linear infinite;
+            }
+
+            .shape-6 {
+                width: 450px;
+                height: 450px;
+                top: 10%;
+                right: 5%;
+                border-radius: 40% 60% 70% 30% / 40% 50% 50% 60%;
+                transform-origin: 50% 50%;
+                animation: morph6 22s linear infinite;
+            }
+
+            @keyframes morph1 {
+                0%, 100% { border-radius: 43% 57% 70% 30% / 45% 45% 55% 55%; }
+                25% { border-radius: 57% 43% 30% 70% / 55% 55% 45% 45%; }
+                50% { border-radius: 30% 70% 70% 30% / 45% 55% 45% 55%; }
+                75% { border-radius: 70% 30% 50% 50% / 55% 45% 55% 45%; }
+            }
+
+            @keyframes morph2 {
+                0%, 100% { border-radius: 70% 30% 30% 70% / 60% 40% 60% 40%; }
+                25% { border-radius: 30% 70% 70% 30% / 40% 60% 40% 60%; }
+                50% { border-radius: 50% 50% 50% 50% / 40% 60% 40% 60%; }
+                75% { border-radius: 60% 40% 40% 60% / 50% 50% 50% 50%; }
+            }
+
+            @keyframes morph3 {
+                0%, 100% { border-radius: 50% 50% 20% 80% / 25% 80% 20% 75%; }
+                25% { border-radius: 80% 20% 50% 50% / 75% 25% 80% 20%; }
+                50% { border-radius: 20% 80% 50% 50% / 20% 75% 25% 80%; }
+                75% { border-radius: 50% 50% 80% 20% / 80% 20% 75% 25%; }
+            }
+
+            @keyframes morph4 {
+                0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+                25% { border-radius: 40% 60% 70% 30% / 30% 60% 40% 70%; }
+                50% { border-radius: 30% 70% 40% 60% / 70% 40% 30% 60%; }
+                75% { border-radius: 70% 30% 60% 40% / 40% 70% 60% 30%; }
+            }
+
+            @keyframes morph5 {
+                0%, 100% { border-radius: 35% 65% 65% 35% / 35% 65% 35% 65%; }
+                25% { border-radius: 65% 35% 35% 65% / 65% 35% 65% 35%; }
+                50% { border-radius: 35% 65% 65% 35% / 65% 35% 65% 35%; }
+                75% { border-radius: 65% 35% 35% 65% / 35% 65% 35% 65%; }
+            }
+
+            @keyframes morph6 {
+                0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 50% 60%; }
+                25% { border-radius: 60% 40% 30% 70% / 50% 40% 60% 50%; }
+                50% { border-radius: 70% 30% 40% 60% / 60% 50% 40% 50%; }
+                75% { border-radius: 30% 70% 60% 40% / 40% 60% 50% 50%; }
+            }
+
+            @keyframes float {
+                0%, 100% { transform: translateY(0) rotate(0deg); }
+                25% { transform: translateY(-20px) rotate(2deg); }
+                50% { transform: translateY(10px) rotate(-1deg); }
+                75% { transform: translateY(-15px) rotate(1deg); }
+            }
+
+            .animate-fade-in {
+                opacity: 0;
+                animation: fade-in 1s forwards;
+            }
+            
+            .animate-fade-in-delay {
+                opacity: 0;
+                animation: fade-in 1s forwards 0.3s;
+            }
+            
+            @keyframes fade-in {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        </style>
     </section>
 
     <!-- Introduction Section -->
