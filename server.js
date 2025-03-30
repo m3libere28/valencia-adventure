@@ -97,7 +97,12 @@ app.get('/api/weather', (req, res) => {
 
 // Handle all other routes
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    // Only serve index.html for non-API routes
+    if (!req.path.startsWith('/api/')) {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } else {
+        res.status(404).json({ error: 'API endpoint not found' });
+    }
 });
 
 // For local development
@@ -108,5 +113,5 @@ if (process.env.NODE_ENV !== 'production') {
     });
 }
 
-// Export for Vercel
+// Export the Express API
 module.exports = app;
