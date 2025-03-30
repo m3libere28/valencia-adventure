@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
+const path = require('path');
 require('dotenv').config();
 const { auth } = require('express-openid-connect');
 
@@ -9,7 +10,9 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Auth0 configuration
 const config = {
@@ -111,6 +114,11 @@ app.post('/api/budget/expenses', requiresAuth, async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: 'Error adding expense' });
     }
+});
+
+// Serve index.html for all other routes (SPA support)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Start server
