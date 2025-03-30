@@ -11,6 +11,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Debug middleware for all requests
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+    next();
+});
+
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -46,6 +52,8 @@ app.use(auth(config));
 // Firebase config endpoint
 app.get('/api/firebase-config', (req, res) => {
     try {
+        console.log('Firebase config request received');
+        
         const firebaseConfig = {
             apiKey: process.env.FIREBASE_API_KEY,
             authDomain: process.env.FIREBASE_AUTH_DOMAIN,
@@ -54,6 +62,12 @@ app.get('/api/firebase-config', (req, res) => {
             messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
             appId: process.env.FIREBASE_APP_ID
         };
+
+        // Log config (without sensitive data)
+        console.log('Firebase config:', {
+            ...firebaseConfig,
+            apiKey: firebaseConfig.apiKey ? 'Set' : 'Not set'
+        });
 
         // Check if any required config is missing
         const missingVars = Object.entries(firebaseConfig)
@@ -75,6 +89,18 @@ app.get('/api/firebase-config', (req, res) => {
     }
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        env: {
+            NODE_ENV: process.env.NODE_ENV,
+            firebaseConfigured: !!process.env.FIREBASE_API_KEY
+        }
+    });
+});
+
 // Weather API update function
 async function updateWeather() {
     try {
@@ -87,6 +113,7 @@ async function updateWeather() {
         }
         const weatherData = await response.json();
         global.currentWeather = weatherData;
+        console.log('Weather data updated successfully');
     } catch (error) {
         console.error('Error fetching weather:', error);
     }
@@ -160,4 +187,9 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+    console.log('Environment:', {
+        NODE_ENV: process.env.NODE_ENV,
+        firebaseConfigured: !!process.env.FIREBASE_API_KEY,
+        weatherConfigured: !!process.env.WEATHER_API_KEY
+    });
 });
