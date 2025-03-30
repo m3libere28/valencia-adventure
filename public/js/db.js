@@ -1,16 +1,23 @@
 // Initialize Firebase and export for other modules
-const firebaseConfig = {
-    apiKey: "AIzaSyAzA0ldOdmvjXFrXYtQtt1q49VC41STcqY",
-    authDomain: "valencia-adventure.firebaseapp.com",
-    projectId: "valencia-adventure",
-    storageBucket: "valencia-adventure.appspot.com",
-    messagingSenderId: "778644270783",
-    appId: "1:778644270783:web:83a34b7c80f176d4c8600a"
-};
+async function getFirebaseConfig() {
+    try {
+        const response = await fetch('/api/firebase-config');
+        if (!response.ok) {
+            throw new Error('Failed to fetch Firebase config');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching Firebase config:', error);
+        throw error;
+    }
+}
 
 // Initialize Firebase and wait for it to be ready
 async function initializeFirebase() {
     try {
+        // Get Firebase config from server
+        const firebaseConfig = await getFirebaseConfig();
+        
         // Initialize Firebase app
         const app = firebase.initializeApp(firebaseConfig);
         

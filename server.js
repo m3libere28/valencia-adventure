@@ -1,9 +1,8 @@
 const express = require('express');
-const mongoose = require('mongoose');
-const { auth } = require('express-openid-connect');
 const cors = require('cors');
 const fetch = require('node-fetch');
 require('dotenv').config();
+const { auth } = require('express-openid-connect');
 
 const app = express();
 
@@ -25,19 +24,18 @@ const config = {
 // auth router attaches /login, /logout, and /callback routes to the baseURL
 app.use(auth(config));
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(() => {
-    console.log('Connected to MongoDB Atlas');
-}).catch(err => {
-    console.error('Error connecting to MongoDB:', err);
+// Firebase config endpoint
+app.get('/api/firebase-config', (req, res) => {
+    const firebaseConfig = {
+        apiKey: process.env.FIREBASE_API_KEY,
+        authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+        appId: process.env.FIREBASE_APP_ID
+    };
+    res.json(firebaseConfig);
 });
-
-// Models
-const Apartment = require('./models/Apartment');
-const Budget = require('./models/Budget');
 
 // Weather API update function
 async function updateWeather() {
@@ -49,35 +47,10 @@ async function updateWeather() {
         if (!response.ok) {
             throw new Error('Weather API response was not ok');
         }
-        
-        const data = await response.json();
-        
-        if (!data || !data.main || !data.weather || !data.weather[0]) {
-            throw new Error('Invalid weather data format');
-        }
-
-        const weatherData = {
-            city: 'Valencia',
-            temperature: {
-                current: data.main.temp,
-                feels_like: data.main.feels_like,
-                min: data.main.temp_min,
-                max: data.main.temp_max
-            },
-            humidity: data.main.humidity,
-            description: data.weather[0].description,
-            icon: data.weather[0].icon,
-            wind: {
-                speed: data.wind.speed,
-                direction: data.wind.deg
-            },
-            timestamp: new Date()
-        };
-
-        return weatherData;
+        const weatherData = await response.json();
+        global.currentWeather = weatherData;
     } catch (error) {
-        console.error('Error updating weather:', error);
-        throw error;
+        console.error('Error fetching weather:', error);
     }
 }
 
@@ -85,14 +58,12 @@ async function updateWeather() {
 setInterval(updateWeather, 3600000);
 updateWeather(); // Initial update
 
-// Routes
-app.get('/api/weather', async (req, res) => {
-    try {
-        const weatherData = await updateWeather();
-        res.json(weatherData);
-    } catch (error) {
-        console.error('Error fetching weather:', error);
-        res.status(500).json({ error: 'Error fetching weather data' });
+// Weather endpoint
+app.get('/api/weather', (req, res) => {
+    if (global.currentWeather) {
+        res.json(global.currentWeather);
+    } else {
+        res.status(503).json({ error: 'Weather data not available' });
     }
 });
 
@@ -107,8 +78,8 @@ const requiresAuth = (req, res, next) => {
 // Apartment routes
 app.get('/api/apartments', requiresAuth, async (req, res) => {
     try {
-        const apartments = await Apartment.find({ createdBy: req.oidc.user.sub });
-        res.json(apartments);
+        // Removed Apartment model and MongoDB connection
+        res.status(404).json({ error: 'Apartments endpoint not available' });
     } catch (error) {
         res.status(500).json({ error: 'Error fetching apartments' });
     }
@@ -116,12 +87,8 @@ app.get('/api/apartments', requiresAuth, async (req, res) => {
 
 app.post('/api/apartments', requiresAuth, async (req, res) => {
     try {
-        const apartment = new Apartment({
-            ...req.body,
-            createdBy: req.oidc.user.sub
-        });
-        await apartment.save();
-        res.status(201).json(apartment);
+        // Removed Apartment model and MongoDB connection
+        res.status(404).json({ error: 'Apartments endpoint not available' });
     } catch (error) {
         res.status(500).json({ error: 'Error creating apartment' });
     }
@@ -130,17 +97,8 @@ app.post('/api/apartments', requiresAuth, async (req, res) => {
 // Budget routes
 app.get('/api/budget', requiresAuth, async (req, res) => {
     try {
-        let budget = await Budget.findOne({ userId: req.oidc.user.sub });
-        if (!budget) {
-            budget = new Budget({
-                userId: req.oidc.user.sub,
-                totalBudget: 0,
-                expenses: [],
-                categories: []
-            });
-            await budget.save();
-        }
-        res.json(budget);
+        // Removed Budget model and MongoDB connection
+        res.status(404).json({ error: 'Budget endpoint not available' });
     } catch (error) {
         res.status(500).json({ error: 'Error fetching budget' });
     }
@@ -148,11 +106,8 @@ app.get('/api/budget', requiresAuth, async (req, res) => {
 
 app.post('/api/budget/expenses', requiresAuth, async (req, res) => {
     try {
-        const budget = await Budget.findOne({ userId: req.oidc.user.sub });
-        budget.expenses.push(req.body);
-        budget.updatedAt = new Date();
-        await budget.save();
-        res.status(201).json(budget);
+        // Removed Budget model and MongoDB connection
+        res.status(404).json({ error: 'Budget endpoint not available' });
     } catch (error) {
         res.status(500).json({ error: 'Error adding expense' });
     }
@@ -161,5 +116,5 @@ app.post('/api/budget/expenses', requiresAuth, async (req, res) => {
 // Start server
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });

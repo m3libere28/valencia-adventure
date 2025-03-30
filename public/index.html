@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medaglia-Asprilla Family: Valencia Adventure</title>
+    <link rel="icon" type="image/svg+xml" href="/images/logo.svg">
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -12,6 +13,7 @@
     
     <!-- Initialize Firebase -->
     <script src="js/db.js"></script>
+    <script src="js/firebase-schema.js"></script>
     
     <!-- Core Dependencies -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -20,7 +22,7 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#1a73e8',
+                        primary: '#4A90E2',
                         secondary: '#34a853',
                         accent: '#ea4335'
                     }
@@ -54,47 +56,22 @@
     <script src="js/weather.js" defer></script>
 
     <!-- Navigation Bar -->
-    <nav class="fixed w-full bg-white bg-opacity-95 shadow-md z-50 transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4">
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm shadow-md">
+        <div class="container mx-auto px-4">
             <div class="flex justify-between items-center h-16">
-                <!-- Logo/Brand -->
-                <a href="#" class="flex items-center space-x-2">
-                    <span class="text-xl font-bold text-blue-600">Valencia Adventure</span>
+                <a href="#" class="flex items-center space-x-3">
+                    <img src="/images/logo.svg" alt="Valencia Adventure Logo" class="h-10 w-10">
+                    <span class="text-xl font-bold text-primary">Valencia Adventure</span>
                 </a>
-
-                <!-- Desktop Navigation -->
-                <div class="hidden md:flex items-center space-x-8">
-                    <a href="#introduction" class="nav-link">Home</a>
-                    <a href="#housing" class="nav-link">Housing</a>
-                    <a href="#schools" class="nav-link">Schools</a>
-                    <a href="#budget" class="nav-link">Budget</a>
-                    <a href="#journal-section" class="nav-link">Journal</a>
-                    <a href="#about" class="nav-link">About</a>
-                    
-                    <!-- Auth Section -->
-                    <div id="auth-section" class="flex items-center space-x-4">
-                        <!-- Alert for auth errors -->
-                        <div id="auth-alert" class="hidden fixed top-4 right-4 z-50"></div>
-                        
-                        <!-- User Info (hidden by default) -->
-                        <div id="user-info" class="hidden flex items-center space-x-2">
-                            <img class="w-8 h-8 rounded-full" src="" alt="Profile">
-                            <span class="text-gray-700"></span>
-                        </div>
-                        
-                        <!-- Login/Logout Buttons -->
-                        <button id="login-button" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                            Login
-                        </button>
-                        <button id="logout-button" class="hidden bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors">
-                            Logout
-                        </button>
-                    </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#housing" class="text-gray-600 hover:text-primary">Housing</a>
+                    <a href="#timeline" class="text-gray-600 hover:text-primary">Timeline</a>
+                    <a href="#schools" class="text-gray-600 hover:text-primary">Schools</a>
+                    <a href="#budget" class="text-gray-600 hover:text-primary">Budget</a>
+                    <a href="#journal-section" class="text-gray-600 hover:text-primary">Journal</a>
                 </div>
-
-                <!-- Mobile Menu Button -->
-                <button id="menu-button" class="md:hidden text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-bars text-2xl"></i>
+                <button id="login-btn" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                    Login
                 </button>
             </div>
         </div>
