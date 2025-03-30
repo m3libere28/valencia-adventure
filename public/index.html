@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medaglia-Asprilla Family: Valencia Adventure</title>
     <link rel="icon" type="image/svg+xml" href="images/logo.svg">
-    
+    <link rel="stylesheet" href="/css/style.css">
     <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <!-- Initialize Firebase -->
     <script src="js/db.js"></script>
     <script src="js/firebase-schema.js"></script>
@@ -1393,3 +1392,39 @@
 </div>
 </body>
 </html>
+
+<!-- Add a loading indicator -->
+<div id="loading-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); display: flex; justify-content: center; align-items: center; z-index: 9999;">
+    <div style="text-align: center;">
+        <div class="spinner" style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="margin-top: 10px;">Loading...</p>
+    </div>
+</div>
+
+<style>
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<script>
+    // Show loading indicator
+    const loadingOverlay = document.getElementById('loading-overlay');
+    
+    // Hide loading when Firebase is ready
+    window.addEventListener('firebaseReady', () => {
+        console.log('Firebase ready event received');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+        }
+    });
+
+    // Hide loading after timeout (fallback)
+    setTimeout(() => {
+        if (loadingOverlay) {
+            loadingOverlay.style.display = 'none';
+            console.warn('Loading timeout reached');
+        }
+    }, 10000);
+</script>
