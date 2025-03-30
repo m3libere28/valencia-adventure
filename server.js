@@ -7,8 +7,16 @@ const { auth } = require('express-openid-connect');
 
 const app = express();
 
+// CORS configuration
+const corsOptions = {
+    origin: ['https://personal-website-taupe-pi-67.vercel.app', 'http://localhost:3000'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+    optionsSuccessStatus: 204
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Debug middleware for all requests
@@ -49,6 +57,19 @@ const config = {
 // auth router attaches /login, /logout, and /callback routes to the baseURL
 app.use(auth(config));
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+        env: {
+            NODE_ENV: process.env.NODE_ENV,
+            firebaseConfigured: !!process.env.FIREBASE_API_KEY,
+            weatherConfigured: !!process.env.WEATHER_API_KEY
+        }
+    });
+});
+
 // Firebase config endpoint
 app.get('/api/firebase-config', (req, res) => {
     try {
@@ -87,18 +108,6 @@ app.get('/api/firebase-config', (req, res) => {
         console.error('Error in /api/firebase-config:', error);
         res.status(500).json({ error: error.message });
     }
-});
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-    res.json({
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-        env: {
-            NODE_ENV: process.env.NODE_ENV,
-            firebaseConfigured: !!process.env.FIREBASE_API_KEY
-        }
-    });
 });
 
 // Weather API update function
