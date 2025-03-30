@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const path = require('path');
+const fs = require('fs'); // Added fs module
 require('dotenv').config();
 const { auth } = require('express-openid-connect');
 
@@ -26,7 +27,7 @@ app.use((req, res, next) => {
 });
 
 // Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static('public'));
 
 // Debug middleware for Firebase config
 app.use((req, res, next) => {
@@ -187,9 +188,21 @@ app.post('/api/budget/expenses', requiresAuth, async (req, res) => {
     }
 });
 
-// Serve index.html for all other routes (SPA support)
-app.get('*', (req, res) => {
+// Handle root path
+app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Handle all other routes for SPA
+app.get('*', (req, res) => {
+    // Check if the path matches a file in public
+    const filePath = path.join(__dirname, 'public', req.path);
+    if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        res.sendFile(filePath);
+    } else {
+        // If no file exists, send the index.html for client-side routing
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    }
 });
 
 // Start server
