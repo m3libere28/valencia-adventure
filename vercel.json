@@ -1,17 +1,27 @@
 {
     "version": 2,
-    "rewrites": [
+    "builds": [
         {
-            "source": "/api/(.*)",
-            "destination": "/server.js"
+            "src": "server.js",
+            "use": "@vercel/node"
         },
         {
-            "source": "/(.*)",
-            "destination": "/"
+            "src": "public/**",
+            "use": "@vercel/static"
         }
     ],
-    "buildCommand": "npm install",
-    "outputDirectory": "public",
-    "framework": null,
-    "installCommand": "npm install"
+    "routes": [
+        {
+            "src": "/api/(.*)",
+            "dest": "server.js"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/public/$1",
+            "continue": true
+        }
+    ],
+    "env": {
+        "NODE_ENV": "production"
+    }
 }
